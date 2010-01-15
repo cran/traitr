@@ -1,0 +1,11 @@
+## future releases:
+
+* implement formula item
+* implement data frame edit item
+* implement more items: vectors?
+
+* work on documentation
+* speed up read.csv example
+
+* make work with gWidgets[WWW|tcltk]
+
