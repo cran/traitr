@@ -1388,6 +1388,69 @@ QT <- sapply(nms, function(i) {
 The assignment of the method within the environment takes advantage of
 \pkg{proto} objects being environments.
 
+\subsection{A view data frame by row GUI}
+\label{sec:view-data-frame}
+
+\begin{figure}
+  \centering
+  \includegraphics[width=.6\textwidth]{df-scroll}
+  \caption{A GUI to scroll through the rows of a data frame.}
+  \label{fig:df-scroll}
+\end{figure}
+
+A common GUI for viewing data on web sites basically shows each row of
+a data frame as editable data. In statistics terms, we scroll through
+the cases in a data set.  Below, we leave the editable part as an
+exercise, but show how the method \meth{set\_model} can be used to
+effect this type of GUI.
+
+This function creates a list of items from a row in the data
+frame. The \meth{set\_model} method for a dialog takes a dialog or
+item group for an argument. The output of this function will provide
+the items value.
+<<>>=
+m <- mtcars
+nms <- names(m)
+make_model <- function(i) {
+  l <- list(i = integerItem(i))
+  for(j in 1:ncol(m)) {
+    l[[nms[j]]] <- numericItem(m[i,j])
+  }
+  l
+}
+@
+Here we initialize the dialog and make two buttons to scroll through
+the rows. The \code{set\_row} method finds the next row to show, then
+creates an item group which is used for our new model. The same
+extractor method, \code{get\_i} is used in the button handlers.
+<<>>=
+dlg <- aDialog(items=make_model(1),
+               title="Data frame scroller",
+               help_string="Press buttons to scroll through data set",
+               buttons=c("<< previous","next >>","SPACE","Cancel"),
+               set_row=function(.,i) {
+                 if(i < 1)
+                   i <- nrow(m)
+                 if(i > nrow(m))
+                   i <- 1
+                 ig <- make_model(as.numeric(i))
+                 .$set_model(anItemGroup(items=ig))
+               },
+               previous_handler=function(.) {
+                 i <- as.integer(.$get_i())
+                 .$set_row(i-1)
+               },
+               next_handler=function(.) {
+                 i <- .$to_R()$i        # same but different
+                 .$set_row(i + 1)
+               })
+@ 
+We now make the GUI (Figure~\ref{fig:df-scroll}).
+<<>>=
+dlg$make_gui()
+@ 
+That's it. We leave for later perhaps using a scroller to scroll
+through the rows, or a means to edit the values and store in the data frame.
 
 \subsection{A Wizard GUI}
 \label{sec:wizard-gui}

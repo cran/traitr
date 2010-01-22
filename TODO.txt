@@ -1,11 +1,10 @@
 ## future releases:
-
-* implement formula item
-* implement data frame edit item
-* implement more items: vectors?
-
-* work on documentation
-* speed up read.csv example
-
+* Need to profile code as the responsiveness isn't where it should be
+* Need to tidy up code base, finish documentation
+* Add more item types:
+  + implement formula item
+  + implement data frame edit item
+  + implement more items: vectors?
 * make work with gWidgets[WWW|tcltk]
+
 

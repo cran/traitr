@@ -2,6 +2,27 @@ Dear Emacs, please make this -*-Text-*- mode!
 
 NEWS for traitr
 
+Changes for 0.3:
+----------------
+
+* doc fix to avoid warning
+
+* removed update_ui from item. This belonged only in container, itemgroup
+
+Changes for 0.2:
+----------------
+
+* Added copyright info, as suggested on devel mailing list.
+
+* added set_model method for itemgroups. Can be used to swap out
+  model, where the model is just an itemgroup whose itmes are all
+  simple items (no nested itemgroups)
+
+* added base method next_method. Gets the correct next method
+
+* added base methods from mutatr: has_slot, get_slot, set_slot. The first
+  two clean up the code a bit
+
 Changes for 0.1:
 ----------------
 

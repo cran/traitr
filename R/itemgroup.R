@@ -1,3 +1,18 @@
+##  Copyright (C) 2010 John Verzani
+##
+##  This program is free software; you can redistribute it and/or modify
+##  it under the terms of the GNU General Public License as published by
+##  the Free Software Foundation; either version 2 of the License, or
+##  (at your option) any later version.
+##
+##  This program is distributed in the hope that it will be useful,
+##  but WITHOUT ANY WARRANTY; without even the implied warranty of
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##  GNU General Public License for more details.
+##
+##  A copy of the GNU General Public License is available at
+##  http://www.r-project.org/Licenses/
+
 #' @include editor.R
 roxygen()
 
@@ -104,7 +119,7 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
 
                            
                            if(missing(gui_layout)) {
-                             if(exists("gui_layout", envir=.) && is.proto(.$gui_layout) && .$gui_layout$is("Container"))
+                             if(.$has_slot("gui_layout") && is.proto(.$gui_layout) && .$gui_layout$is("Container"))
                                gui_layout <- .$gui_layout
                              else
                                gui_layout <- .$make_default_gui_layout()
@@ -182,7 +197,7 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
                            
                            ## make get_/set_pairs
                            sapply(.$get_items_only(), function(i) {
-                             if(exists("name", envir=i)) {
+                             if(i$has_slot("name")) {
                                property <- i$name
                                .$assign_if_null(paste("get_", i$name, sep=""),
                                       function(.) {
@@ -192,14 +207,7 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
                                .$assign_if_null(paste("set_", i$name, sep=""),
                                                 function(., value) {
                                                   .$get_item_by_name(property)$setattr(property, value)
-                                                  invisible(.$update_ui())
-# WAS                                                  .$get_items()[[property]]$model$setattr(property, value)
                                                 }
-                                                ## old defn, slow!
-#                                      function(., value) {
-#                                        i$get_model()$setattr(property, value)
-#                                        invisible(.$update_ui())
-#                                      }
                                                 )
                             }
                            })
@@ -216,6 +224,23 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
                            
                            invisible()
                          },
+                         ## set model (the items) for the itemgroup from another
+                         .doc_set_model=paste(
+                           desc("Set model for the itemgroup. The set of items should match",
+                                "by type and name and not include any items groups."),
+                           param("itemgroup","An itemgroup or dialog instance")
+                           ),
+                         set_model =function(., itemgroup) {
+                           old_items <- .$get_items()
+                           new_items <- itemgroup$get_items()
+                           if(digest(sort(names(old_items))) == digest(sort(names(new_items)))) {
+                             ## names match, lets replace models
+                             for(i in names(old_items)) {
+                               old_items[[i]]$set_model(new_items[[i]])
+                             }
+                           }
+                         },
+                         
                          ## initialize controllers
                          ## called after view is set
                          .doc_init_controller=paste(
@@ -227,15 +252,9 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
                            .$add_observer(.)
                            ## set up controllers
                            sapply(.$get_items(), function(i) i$init())
-                           
-                           ## add observer to update model view
-                           controller <- Controller$proto(view=.$gui_layout,
-                                                          model_value_changed=function(.) {
-                                                            view <- .$get_view()
-                                                            if(!is.null(view))
-                                                              view$do_call("update_ui")
-                                                          })
-                           .$do_call("add_observer",controller)
+                           ## had code to call update_ui through a controller
+                           ## this code is now in the dialog code. item groups do
+                           ## not automatically have there UI updated?
                          },
                          ## initialize items -- called after making GUI
                          init=function(.) {
@@ -313,7 +332,7 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
                              val <- .$undo_stack[[.$undo_ptr]]
                              .$get_item_by_name(val$property)$setattr(val$property, val$old_value, notify_private=FALSE) ## by pass set_property
                              .$undo_ptr <- .$undo_ptr-1
-                             .$update_ui()
+##                             .$update_ui()
                            }
                          },
                          undo_can_redo=function(.) .$undo_ptr < length(.$undo_stack),
@@ -322,7 +341,7 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
                              val <- .$undo_stack[[.$undo_ptr + 1]]
                              .$get_item_by_name(val$property)$setattr(val$property, val$value, notify_private=FALSE)
                              .$undo_ptr <- .$undo_ptr + 1
-                             .$update_ui()                             
+##                             .$update_ui()                             
                            }
                          },
                          
@@ -335,7 +354,7 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
                            ## update items
                            sapply(.$get_items(), function(i) i$update_ui())
                            ## update gui_layout
-                           if(exists("gui_layout", envir=.) && !is.null(.$gui_layout))
+                           if(.$has_slot("gui_layout") && !is.null(.$gui_layout))
                              .$gui_layout$update_ui()
                          }
                          )

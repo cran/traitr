@@ -1,3 +1,18 @@
+##  Copyright (C) 2010 John Verzani
+##
+##  This program is free software; you can redistribute it and/or modify
+##  it under the terms of the GNU General Public License as published by
+##  the Free Software Foundation; either version 2 of the License, or
+##  (at your option) any later version.
+##
+##  This program is distributed in the hope that it will be useful,
+##  but WITHOUT ANY WARRANTY; without even the implied warranty of
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##  GNU General Public License for more details.
+##
+##  A copy of the GNU General Public License is available at
+##  http://www.r-project.org/Licenses/
+
 #' @include itemgroup.R
 roxygen()
 
@@ -91,16 +106,8 @@ Dialog <- ItemGroup$proto(class=c("Dialog", ItemGroup$class),
                             ## main part
                             g <- ggroup(horizontal=FALSE, cont=widgets[['toplevel']], spacing=10)
 
-                            ## grab parent ItemGroup
-##                             parent <- .
-##                             while(parent$is("Dialog"))
-##                               parent <- get(".super", envir=parent)
 
-                            get("make_gui", envir=.super)(., container=g, gui_layout=gui_layout)
-
-##                             if(is.null(gui_layout$context))
-##                               gui_layout$context <- .
-##                             gui_layout$make_ui(cont=g, attr=list(expand=TRUE))
+                            .$next_method("make_gui")(., container=g, gui_layout=gui_layout)
 
 
 
@@ -161,7 +168,7 @@ Dialog <- ItemGroup$proto(class=c("Dialog", ItemGroup$class),
                             desc("Method to update text in status bar, if one exists")
                             ),
                           update_status_text=function(., value) {
-                            if(exists(".statusbar", envir=., inherits=FALSE))
+                            if(.$has_local_slot(".statusbar"))
                               svalue(.$.statusbar) <- value
                           },
                           ## return list of values from each Item and ItemGroup in items
@@ -187,7 +194,7 @@ Dialog <- ItemGroup$proto(class=c("Dialog", ItemGroup$class),
                               enabled(redo) <- .$undo_can_redo()
 
                             
-                            get("update_ui", envir=.super)(.)
+                            .$next_method("update_ui")(.)
                           } 
                           )
 

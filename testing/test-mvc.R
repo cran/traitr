@@ -496,7 +496,7 @@ if(0) {
   dlg$make_gui()
 }
 
-if(0) {
+if(1) {
   ## model
   dlg <- aDialog(items=list(
                    file=fileItem("", attr=list(

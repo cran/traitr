@@ -1,3 +1,18 @@
+##  Copyright (C) 2010 John Verzani
+##
+##  This program is free software; you can redistribute it and/or modify
+##  it under the terms of the GNU General Public License as published by
+##  the Free Software Foundation; either version 2 of the License, or
+##  (at your option) any later version.
+##
+##  This program is distributed in the hope that it will be useful,
+##  but WITHOUT ANY WARRANTY; without even the implied warranty of
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##  GNU General Public License for more details.
+##
+##  A copy of the GNU General Public License is available at
+##  http://www.r-project.org/Licenses/
+
 #' @include view.R
 roxygen()
 
@@ -85,7 +100,7 @@ Controller <- BaseTrait$proto(class=c("Controller", BaseTrait$class),
                                  sapply(nms[grep("property_(.*)_value_changed$", nms)],
                                         function(i) {
                                           prop <-  gsub("property_(.*)_value_changed$","\\1",i)
-                                          get(i, envir=.)(., .$get_model()$getattr(prop),NA)
+                                          .$get_slot(i)(., .$get_model()$getattr(prop),NA)
                                         })
                                  invisible()
                                },
@@ -119,13 +134,13 @@ Adapter <- Controller$proto(class=c("Adapter", Controller$class),
                               ## set up model to notify view For example:
                               view <- .$get_view()
                               meth_name<- sprintf("property_%s_value_changed", .$property)
-                              assign(meth_name,
-                                     function(., value, old_value) {
-                                       view$set_value_in_view(.$view_widget_name, value)
-                                     },
-                                     envir = .)
+                              .$set_slot(meth_name,
+                                         function(., value, old_value) {
+                                           view$set_value_in_view(.$view_widget_name, value)
+                                         })
+                                     
                               ## call method
-                              get(meth_name, envir=.)(., .$get_model()$getattr(.$property), NA)
+                              .$get_slot(meth_name)(., .$get_model()$getattr(.$property), NA)
                             },
                             ## this propogates changes from the view back to the model
                             update_from_view = function(.) {
@@ -158,7 +173,7 @@ Adapter <- Controller$proto(class=c("Adapter", Controller$class),
                             },
                             ## remove the view -- say be removeHandler call.
                             remove_view=function(.) {
-                              if(exists(".handlerIDs", .))
+                              if(.$has_slot(".handlerIDs"))
                                 sapply(.$.handlerIDs, function() removeHandler(.$get_view(), i))
                             },
                             init=function(.) {

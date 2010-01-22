@@ -1,3 +1,18 @@
+##  Copyright (C) 2010 John Verzani
+##
+##  This program is free software; you can redistribute it and/or modify
+##  it under the terms of the GNU General Public License as published by
+##  the Free Software Foundation; either version 2 of the License, or
+##  (at your option) any later version.
+##
+##  This program is distributed in the hope that it will be useful,
+##  but WITHOUT ANY WARRANTY; without even the implied warranty of
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##  GNU General Public License for more details.
+##
+##  A copy of the GNU General Public License is available at
+##  http://www.r-project.org/Licenses/
+
 #' @include editor.R
 roxygen()
 
@@ -143,33 +158,33 @@ Item <- BaseTrait$proto(class=c("Item", "Model", BaseTrait$class),
                          
                          ## When update_ui() is called, these two conditions are checked. If FALSE, then
                          ## the methods visible and enabled are called on the editor
-                         .doc_visible_when=paste(
-                           desc("Method evaluated when <code>update_ui</code> is called to determine if the",
-                                "item should be visible. Should evaulate to a logical."),
-                           returns("A logical value to determine if item is visible")
-                           ),
-                         visible_when = function(.) {TRUE}, # function call. When update_ui called
-                         .doc_visible=paste(
-                           desc("Method to set visibility of editor"),
-                           param("value","a logical")
-                           ),
-                         visible = function(., value) {
-                           .$get_editor()$visible(as.logical(value))
-                         },
+##                          .doc_visible_when=paste(
+##                            desc("Method evaluated when <code>update_ui</code> is called to determine if the",
+##                                 "item should be visible. Should evaulate to a logical."),
+##                            returns("A logical value to determine if item is visible")
+##                            ),
+##                          visible_when = function(.) {TRUE}, # function call. When update_ui called
+##                          .doc_visible=paste(
+##                            desc("Method to set visibility of editor"),
+##                            param("value","a logical")
+##                            ),
+##                          visible = function(., value) {
+##                            .$get_editor()$visible(as.logical(value))
+##                          },
                          ## enabled
-                         .doc_enabled_when=paste(
-                           desc("Method evaluated when <code>update_ui</code> is called to determine if the",
-                                "item should be enabled (sensitive to user input). Should evaulate to a logical."),
-                           returns("A logical value to determine if item is enabled")
-                           ),
-                         enabled_when = function(.) {TRUE}, # function call
-                         .doc_enabled=paste(
-                           desc("Method to set whether editor is enabled (sensitive to user input"),
-                           param("value","a logical")
-                           ),
-                         enabled = function(., value) {
-                           .$get_editor()$enabled(as.logical(value))
-                         },
+##                          .doc_enabled_when=paste(
+##                            desc("Method evaluated when <code>update_ui</code> is called to determine if the",
+##                                 "item should be enabled (sensitive to user input). Should evaulate to a logical."),
+##                            returns("A logical value to determine if item is enabled")
+##                            ),
+##                          enabled_when = function(.) {TRUE}, # function call
+##                          .doc_enabled=paste(
+##                            desc("Method to set whether editor is enabled (sensitive to user input"),
+##                            param("value","a logical")
+##                            ),
+##                          enabled = function(., value) {
+##                            .$get_editor()$enabled(as.logical(value))
+##                          },
                          ## a function(., rawvalue) return list with retval=TRUE for valid, retval=FALSE for invalid
                          ## pass message through mesg component
                          ## uses rawvalue, can coerce with .$coerce_with, which model does
@@ -213,22 +228,40 @@ Item <- BaseTrait$proto(class=c("Item", "Model", BaseTrait$class),
                            param("model","Either an Model or Item instance")
                            ),
                          set_model=function(., model) {
-                           if(is.proto(model) && model$is("Model")) {
+                           if(is.proto(model) && model$is("Item")) {
+                             .$set_model_from_item(model)
+                           } else if(is.proto(model) && model$is("Model")) {
+                             old_model <- .$get_model()
                              .$model <- model
+                             ## observers
+                             
+                             ## controller
                              if(!is.null(.$controller)) {
                                .$controller$set_model(model)
                              }
-                           } else if(is.proto(model) && model$is("Item")) {
-                             .$set_model_from_item(model)
-                           }
+                             ## update views
+                             if(!is.null(.$get_slot("editor")) && .$editor$is_realized()) {
+                               sapply(.$model$list_observers(), function(o) {
+                                 nms <- o$list_methods()
+                                 sapply(nms, function(i) {
+                                   if(grepl("^property_(.*)_value_changed$",i)) {
+                                     prop <- gsub("property_(.*)_value_changed$","\\1",i)
+                                     value <- .$do_call(sprintf("get_%s",prop))
+                                     do.call(o$get_slot(i),
+                                             list(.=o, value=value, old_value=value))
+                                   }
+                                 })
+                               })
+                             }
+                           } 
                            invisible()
                          },
                          ## Use the model from a different item
                          set_model_from_item=function(., item) {
                            if(!missing(item) && (is.proto(item) && item$is("Item"))) {
                              item$init_model() # if not initialized, needs to be
-                             model <- item$get_model()
-                             .$set_model(model)
+                             m <- item$get_model()
+                             .$set_model(m)
                            }
                          },
                          .doc_get_model=paste(
@@ -258,7 +291,7 @@ Item <- BaseTrait$proto(class=c("Item", "Model", BaseTrait$class),
                            tmp <- sprintf("validate_%s", key)
                            if(key == .$name) {
                              validate_method_name="validate"
-                           } else if (exists(tmp, envir=.)) {
+                           } else if (.$has_slot(tmp)) {
                              validate_method_name <- tmp
                            }
                            if(validate_method_name != "") {
@@ -280,6 +313,7 @@ Item <- BaseTrait$proto(class=c("Item", "Model", BaseTrait$class),
                            ## we store the value (a string) not the validated value
                            .$model$setattr(key, value, notify_private) 
                            .$update_ui()
+                           invisible()
                          },
                          ## defines initial model if not present
                         .doc_default_get=paste(
@@ -315,12 +349,12 @@ Item <- BaseTrait$proto(class=c("Item", "Model", BaseTrait$class),
                            ## assign name as default if not already defined
                            ## need to not look up, as things like "mean", "sd" etc are found
                            ## here. Might need to change though to search over all proto objects?
-                           if(!exists(.$name, envir=.$model, inherits=FALSE))
+                           if(!.$model$has_local_slot(.$name))
                              .$model$assign_if_null(.$name, .$value)
 
                            sapply(.$properties, function(i) {
-                             if(exists(i, envir=.))
-                               val <- get(i, envir=.)
+                             if(.$has_slot(i))
+                               val <- .$get_slot(i)
                              else
                                val <- NULL
                              .$model$assign_if_null(i, val)
@@ -439,8 +473,9 @@ Item <- BaseTrait$proto(class=c("Item", "Model", BaseTrait$class),
                            desc("Update the user interface. Checks visible_when and enabled_when")
                            ),
                          update_ui=function(.) {
-                           .$editor$visible(.$visible_when())
-                           .$editor$enabled(.$enabled_when())
+                           ## do we need to do this? Or are only itemgroups/containers updated to be visible/enabled?
+                                        #                           .$editor$visible(.$visible_when())
+                                        #                           .$editor$enabled(.$enabled_when())
                            invisible()
                          }
                         )
@@ -505,7 +540,7 @@ stringItem <- function(value="",        # initial vlaue
       stop("Argument regex is a string specifying a regular expression for validation")
     obj$.regex <- regex
     obj$validate <- function(., rawvalue) {
-      value <- get("validate",envir=.super)(., rawvalue)
+      value <- .$next_method("validate")(., rawvalue)
       if(grepl(.$.regex, value))
         return(value)
       else
@@ -563,7 +598,7 @@ numericItem <- function(value=numeric(0), # a number
                     )
   obj$add_class("NumericItem")
   obj$validate <- function(., rawvalue) {
-    value <- get("validate",envir=.super)(., rawvalue)
+    value <- .$next_method("validate")(., rawvalue)
     if(is.numeric(value))
       return(value)
     else
@@ -630,8 +665,7 @@ integerItem <- function(value=integer(0),
   obj <- do.call("numericItem", l)
   obj$add_class("IntegerItem")
   obj$validate <- function(., rawvalue) {
-    value <- get("validate",envir=.super)(., rawvalue)
-    print(value)
+    value <- .$next_method("validate")(., rawvalue)
     if(is.integer(value))
       return(value)
     else
@@ -754,7 +788,7 @@ trueFalseItem <- function(value=TRUE,
                    ...)
  obj$add_class("BooleanItem")
  obj$validate <- function(., rawvalue) {
-   value <- get("validate",envir=.super)(., rawvalue)
+   value <- .$next_method("validate")(., rawvalue)
    if(is.logical(value))
      return(value)
    else
@@ -856,7 +890,10 @@ choiceItem <- function(value="",
     value
   }
   obj$validate <- function(., rawvalue) {
-    value <- get("validate", envir=.super)(., rawvalue)
+    if(.$by_index)
+      return(rawvalue)
+
+    value <- .$next_method("validate")(., rawvalue)
     if(.$by_index) {
       if(is.integer(value))
         return(value)
@@ -904,6 +941,7 @@ choiceItem <- function(value="",
     }                  
   }
 
+  
   ## specify how get/set is done
   obj$editor$by_index <- by_index
 
@@ -981,7 +1019,7 @@ rangeItem <- function(value="",
       .$controller2$init()
     }
     ## now call the standard one
-    get("init_controller", envir=.super)(.)
+    .$next_method("init_controller")(.)
   }
   
   obj$init_model()
@@ -1602,13 +1640,13 @@ formulaItem <- function(value="",
 
 
   ## XXX
-#' data frame editor item
+#' data frame editor item. Needs writing
 #'
 #' Write me
-#' @param ... 
+#' @param ... to be replaced with actual arguments
 #' @export
 #' @return A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.
 dfEditItem <- function(...) {
   cat("XXX This needs to be written XXX")
-  labelItem(value="no formulaItem yet", name="Anonymous")
+  labelItem(value="no data frame editing item yet (gdf)", name="Anonymous")
 }

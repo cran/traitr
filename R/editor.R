@@ -1,3 +1,18 @@
+##  Copyright (C) 2010 John Verzani
+##
+##  This program is free software; you can redistribute it and/or modify
+##  it under the terms of the GNU General Public License as published by
+##  the Free Software Foundation; either version 2 of the License, or
+##  (at your option) any later version.
+##
+##  This program is distributed in the hope that it will be useful,
+##  but WITHOUT ANY WARRANTY; without even the implied warranty of
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##  GNU General Public License for more details.
+##
+##  A copy of the GNU General Public License is available at
+##  http://www.r-project.org/Licenses/
+
 #' @include container.R
 roxygen()
 
@@ -100,9 +115,9 @@ Editor <- View$proto(class=c("Editor", View$class),
                          }
                          ## now make widget
                          ## check for editor_style
-                         if(exists("editor_style", envir=context) &&
+                         if(context$has_slot("editor_style") &&
                             !is.null(editor_style <- context$editor_style) &&
-                            exists(paste("make_ui_",editor_style, sep=""), envir=.)) {
+                            .$has_slot(paste("make_ui_",editor_style, sep=""))) {
                            .$do_call(paste("make_ui_",editor_style, sep=""), list(cont=g, attr=attr, context=context))
                          } else {
                            .$make_ui(cont=g, attr=attr, context=context, ...)
@@ -141,7 +156,7 @@ Editor <- View$proto(class=c("Editor", View$class),
                          cur_val <- svalue(widget)
                          if(digest(cur_val) != digest(value)) {
                            blockHandler(widget)
-                           svalue(widget) <- value
+                           try(svalue(widget) <- value, silent=TRUE)
                            unblockHandler(widget)
                          }
                        }
@@ -182,7 +197,7 @@ EntryEditor <- Editor$proto(class=c("EntryEditor", Editor$class),
                                 attr$text <- .$format_fun(context$value)
                               else
                                 attr$text <- context$value
-                              get("make_ui",envir=.super)(., container, attr, context, ...)
+                              .$next_method("make_ui")(., container, attr, context, ...)
 
                             },
                             ## draw widget in valid state
@@ -212,7 +227,7 @@ EntryEditor <- Editor$proto(class=c("EntryEditor", Editor$class),
                                   require(RGtk2)
                                   e$modifyBg(GtkStateType['normal'],"red")
                                 } else {
-                                  get("set_invalid",envir=.super)(., mesg)
+                                  .$next_method("set_invalid")(., mesg)
                                 }
                               }
                             }
@@ -239,6 +254,7 @@ ObjectWithValuesEditor <- Editor$proto(class=c("ObjectWithValuesEditor", Editor$
                                            if(digest(curVal) != digest(value))
                                              svalue(widget, index=.$by_index) <- value
                                          }
+                                         invisible()
                                        },
 
                                        set_values_in_view = function(., values) {
@@ -255,14 +271,16 @@ ObjectWithValuesEditor <- Editor$proto(class=c("ObjectWithValuesEditor", Editor$
                                                try(svalue(widget, index=.$by_index) <- curVal, silent=TRUE)
                                            }
                                          }
+                                         invisible()
                                        },
+                                       set_invalid=function(., ...) {},
                                        make_ui=function(., container, attr=.$attr, context=., ...) {
                                          attr$items <- context$get_values()
                                          attr$selected = if(context$get_value() %in% context$get_values())
                                            min(which(context$get_value() == context$get_values()))
                                          else
                                            1
-                                         get("make_ui",envir=.super)(., container, attr, context, ...)
+                                         .$next_method("make_ui")(., container, attr, context, ...)
                                        },
                                        ## compact style is a label and button to pop up choice
                                        make_ui_compact=function(., container, attr=.$attr, context=., ...) {
@@ -315,7 +333,7 @@ BooleanEditor <- Editor$proto(class=c("BooleanEditor", Editor$class),
                               editor_name="gcombobox",
                               make_ui=function(., container, attr=.attr, context, ...) {
                                 attr$items <- c(TRUE, FALSE)
-                                get("make_ui",envir=.super)(., container, attr, context, ...)
+                                .$next_method("make_ui")(., container, attr, context, ...)
                               },
                               make_ui_compact=function(., container, attr=.attr, context, ...) {
                                 widget <- gcheckbox("", cont=container)
@@ -362,12 +380,12 @@ RangeEditor <- Editor$proto(class=c("RangeEditor", Editor$class),
                                 spinner <- .$widgets[["spinner"]] # may be NULL
                                 if(digest(svalue(widget)) != digest(value)) {
                                   blockHandler(widget)
-                                  svalue(widget) <- value
+                                  try(svalue(widget) <- value, silent=TRUE)
                                   unblockHandler(widget)
                                 }
                                 if(!is.null(spinner) && (digest(svalue(spinner)) != digest(value))) {
                                   blockHandler(widget)
-                                  svalue(spinner) <- value
+                                  try(svalue(spinner) <- value, silent=TRUE)
                                   unblockHandler(widget)
                                 }
                               }
@@ -382,7 +400,7 @@ ButtonEditor <- Editor$proto(class=c("ButtonEditor", Editor$class),
                              attr=list(),
                              make_ui=function(., container, attr=.attr, context, ...) {
                                attr$text=context$value
-                               get("make_ui",envir=.super)(., container, attr, context, ...)
+                               .$next_method("make_ui")(., container, attr, context, ...)
                              }
                              )
 
@@ -400,7 +418,7 @@ ImageEditor <- Editor$proto(class=c("ImageEditor", Editor$class),
 GraphEditor <- Editor$proto(class=c("GraphEditor", Editor$class),
                             editor_name="ggraphics",
                             make_ui=function(., container, attr=.attr, context, ...) {
-                              get("make_ui", envir=.super)(., container, attr, context, ...)
+                              .$next_method("make_ui")(., container, attr, context, ...)
                               g <- .$get_widget_by_name(.$view_widget_name)
                               dev.no <- tag(g, "device") # used within fn. scope below
 

@@ -1,3 +1,18 @@
+##  Copyright (C) 2010 John Verzani
+##
+##  This program is free software; you can redistribute it and/or modify
+##  it under the terms of the GNU General Public License as published by
+##  the Free Software Foundation; either version 2 of the License, or
+##  (at your option) any later version.
+##
+##  This program is distributed in the hope that it will be useful,
+##  but WITHOUT ANY WARRANTY; without even the implied warranty of
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##  GNU General Public License for more details.
+##
+##  A copy of the GNU General Public License is available at
+##  http://www.r-project.org/Licenses/
+
 #' @include base.R
 roxygen()
 
@@ -75,7 +90,11 @@ Model <- BaseTrait$proto(class=c("Model", BaseTrait$class),
                                 sapply(which(ind), function(i) .$.observers[[i]] <- NULL)
                             }
                           },
-                          
+                          ## list observers
+                         .doc_list_observers=paste(
+                           desc("Return all observers of the model as a list")
+                           ),
+                         list_observers=function(.) .$.observers,
                           ## observables have getter/setter methods defined for them
                           ## on the fly when init is called on Modal instance
                           ## these refer to properties of the model
@@ -107,14 +126,16 @@ Model <- BaseTrait$proto(class=c("Model", BaseTrait$class),
                             "to access model values. These simply pass to getattr and setattr methods")
                             ),
                           init = function(.) {
-                            sapply(.$list_properties(return_names=TRUE), function(i) {
-                              .$assign_if_null(paste("get_",i, sep=""),
-                                     function(.,...) .$getattr(i))
-                              .$assign_if_null(paste("set_", i, sep=""),
-                                     function(., value, ...) {
-                                       .$setattr(i,value)
-                                     })
+                            sapply(.$list_properties(), function(i) {
+                              .$assign_if_null(sprintf("get_%s",i),
+                                               function(.,...) .$getattr(i)
+                                               )
+                              .$assign_if_null(sprintf("set_%s",i),
+                                               function(., value, ...) {
+                                                 .$setattr(i,value)
+                                               })
                             })
+                            invisible()
                           },
 
                           ## private

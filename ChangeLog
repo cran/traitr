@@ -1,0 +1,13 @@
+2010-01-21  john verzani  <verzani@john-verzanis-macbook-pro.local>
+
+	* R/items.R: moved update_ui/enabled_when/visible_when out of
+	items. They belong in containers, itemgroups.
+
+2010-01-19  john verzani  <verzani@john-verzanis-macbook-pro.local>
+
+	* R/base.R (next_method): new method for finding next method in parent environment
+
+	* R/base.R (has_slot): mutatr method replacing exist(keu, envir-.)
+
+	* R/itemgroup.R: added set_model method
+

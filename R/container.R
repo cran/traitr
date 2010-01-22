@@ -1,3 +1,18 @@
+##  Copyright (C) 2010 John Verzani
+##
+##  This program is free software; you can redistribute it and/or modify
+##  it under the terms of the GNU General Public License as published by
+##  the Free Software Foundation; either version 2 of the License, or
+##  (at your option) any later version.
+##
+##  This program is distributed in the hope that it will be useful,
+##  but WITHOUT ANY WARRANTY; without even the implied warranty of
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##  GNU General Public License for more details.
+##
+##  A copy of the GNU General Public License is available at
+##  http://www.r-project.org/Licenses/
+
 #' @include controller.R
 roxygen()
 
@@ -114,7 +129,7 @@ Container <- BaseTrait$proto(class=c("Container", BaseTrait$class),
                                     i$make_ui(cont)
                                   } else if(is.proto(i) && i$is("Container")) {
                                     ## if non-trivial context in container, pass in
-                                    if(exists("context", envir=i) && !is.null(i$context)) {
+                                    if(i$has_slot("context") && !is.null(i$context)) {
                                       i$make_ui(cont)
                                     } else {
                                       i$context <- context
@@ -177,8 +192,8 @@ Container <- BaseTrait$proto(class=c("Container", BaseTrait$class),
                                   ## wrap in try -- sometimes issue with update_ui call before
                                   ## model values are initialized
                                   try({
-                                    .$enabled(get("enabled_when",envir=.)(.$context))
-                                    .$visible(get("visible_when",envir=.)(.$context))
+                                    .$enabled(.$get_slot("enabled_when")(.$context))
+                                    .$visible(.$get_slot("visible_when")(.$context))
                                   }, silent=TRUE)
                                 }
                               },

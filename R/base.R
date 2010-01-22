@@ -1,8 +1,25 @@
+##  Copyright (C) 2010 John Verzani
+##
+##  This program is free software; you can redistribute it and/or modify
+##  it under the terms of the GNU General Public License as published by
+##  the Free Software Foundation; either version 2 of the License, or
+##  (at your option) any later version.
+##
+##  This program is distributed in the hope that it will be useful,
+##  but WITHOUT ANY WARRANTY; without even the implied warranty of
+##  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+##  GNU General Public License for more details.
+##
+##  A copy of the GNU General Public License is available at
+##  http://www.r-project.org/Licenses/
+
+
 #' @include helpers.R
 roxygen()
 ## to quiet down some errors and notes in R CMD check:
 require(proto)
 assign(".super", NULL)
+
 
 #' Base Trait to place common properties and methods
 #' @export
@@ -36,7 +53,7 @@ BaseTrait <- proto(
                      param("value", "Value to assign")
                      ),
                    assign_if_null=function(., key, value) {
-                     if(!exists(key, envir=., inherits=FALSE))
+                     if(!.$has_local_slot(key))
                        assign(key, value, envir=.)
                    },
                     ## append to a property list
@@ -74,81 +91,136 @@ BaseTrait <- proto(
                       else
                         TRUE
                     },
-
+                   ## some mutatr like methods
+                   ## has_slot <--> exists
+                   .doc_has_slot=paste(
+                     desc("Does slot (property) exist?"),
+                     param("key","Name of property"),
+                     param("inherits","Look into ancestry?")
+                   ),
+                   has_slot=function(., key) {
+                     exists(as.character(key), envir=.)
+                   },
+                   .doc_has_local_slot=paste(
+                     desc("Same as has_slot, only looks only in present object, not ancestors")
+                     ),
+                   has_local_slot=function(.,key) {
+                     exists(as.character(key), envir=., inherits=FALSE)
+                   },
+                   ## get slot
+                   .doc_get_slot=paste(
+                     desc("Get slot (property) by name. Can be used to get a method to call with different context."),
+                     param("key", "slot name"),
+                     returns("Returns the method or NULL")
+                     ),
+                   get_slot=function(., key) {
+                     if(.$has_slot(key))
+                       get(as.character(key), envir=.)
+                     else
+                       NULL
+                   },
+                   .doc_get_local_slot=paste(
+                     desc("Get slot if in local object, not ancestors"),
+                     param("key", "slot name")
+                     ),                     
+                   get_local_slot = function(., key) {
+                     if(.$has_local_slot(key))
+                       get(as.character(key), envir=.)
+                     else
+                       NULL
+                   },
+                   .doc_set_slot=paste(
+                     desc("Set slot (property) value"),
+                     param("key","Property name"),
+                     param("value","Value to set in slot"),
+                     param("initialize","If <code>TRUE</code> assign even if not already present.")
+                     ),
+                   set_slot=function(., key, value, initialize=TRUE) {
+                     key <- as.character(key)
+                     if(!initialize && !.$has_slot(key)) {
+                       warning(sprintf("property %s not intialized. Call with initialize=TRUE to set", key))
+                       return()
+                     } 
+                     assign(key, value, envir=.)
+                   },
                     ## return all objects in the widget
                     ## if class is non-null will return only our proto objects of that "class"
                     .doc_list_objects=paste(
-                      desc("List all objects in the widget. If class is non-NULL, return only objects",
-                           "matching that class (the class defined in the package)."),
-                      param("class","If given, only objects of this class are returned.")
+                      desc("List all objects in the widget."),
+                      returns("Returns a list with components methods and properties")
                       ),
-                    list_objects = function(., class=NULL) {
-                      s <- .
-                      if(!s$is(class))
-                        return(list())
-                      out <- ls(s, all.names=TRUE)
-                      while(is.proto(s <- s$parent.env())) {
-                        if(s$is(class))
-                          out <- c(out, ls(s, all.names=TRUE))
-                      }
-                      unique(out)
-                    },
-### Not needed?                    
-##                     ## return list of objects of certain class, e.g. "Controller"
-##                     .doc_list_by_class=paste(
-##                       desc("Return all objects of the specified class")
-##                       ),
-                      
-##                     list_by_class=function(., class) {
-##                       out <- .$list_objects()
-##                       out <- sapply(out, function(i) {
-##                         obj <- get(i, envir=.)
-##                         if(is.proto(obj) && obj$is(class))
-##                           obj
-##                       })
-##                       out[!sapply(out, is.null)]
-##                     },
-
-                    ## return non functions (properties)
+                   list_objects = function(., all.names=FALSE) {
+                     s <- .
+                     is_method <- function(lst, env) {
+                       if(length(lst) == 0)
+                         return(logical())
+                       ind <- sapply(lst, function(i) {
+                         is.function(get(i,envir=env))
+                       })
+                       ind
+                     }
+                     out <- ls(s, all.names=all.names)
+                     ind <- is_method(out, s)
+                     methods <- out[ind]
+                     properties <- out[!ind]
+                     while(is.proto(s <- s$parent.env())) {
+                       if(s$has_slot("class")) {
+                         out <- ls(s, all.names=all.names)
+                         ind <- is_method(out, s)
+                         methods <- unique(c(methods, out[ind]))
+                         properties <- unique(c(properties, out[!ind]))
+                       }
+                     }
+                     return(list(methods=methods,
+                                 properties=setdiff(properties, c("class","traitr","slot"))))
+                   },
+                   
+                   ## return non functions (properties)
                     ## will return objects or just names if return_names=TRUE
                     ## can pass class= value if desired
                     .doc_list_properties=paste(
                       desc("Return all properties (non-methods) for this proto object."),
-                      param("return_names","If <code>TRUE</code>returns the names of the objects",
-                            "otherwise returns the objects"),
                       param("class","If non-NULL, returns only from objects of this class.")
                       ),
-                    list_properties=function(., return_names=FALSE, class=NULL) {
-                      out <- .$list_objects(class=class)
-                      out <- sapply(out, function(i) {
-                        ## skip "class" and dot names
-                        if(i != "class" && !grepl("^\\.",i) && !grepl("^\\.doc_",i)) {
-                          obj <- get(i, envir=.)
-                          if(!is.function(obj))
-                            obj
-                        } else {
-                          NULL
-                        }
-                      })
-                      out <- out[!sapply(out, is.null)]
-                      if(return_names)
-                        names(out)
-                      else
-                        out
-                    },
-                    ## list methods
-                    .doc_list_methods=paste(
+                    list_properties=function(., all.names=FALSE) .$list_objects(all.names)$properties,
+                   ## list methods
+                   .doc_list_methods=paste(
                       desc("Method to list all possible methods for object")
                       ),
-                    list_methods=function(.) {
-                      nms <- .$list_objects()
-                      ind <- sapply(nms, function(i) {
-                        is.function(get(i,envir=.))
-                      })
-                      nms[ind]
-                    },
-                    
-                    ## call a method if it is present. Basically do.call with
+                   list_methods=function(., all.names=FALSE) .$list_objects(all.names)$methods,
+                   ## find next method that is different or return NULL
+                   .doc_next_method=paste(
+                     desc("Find next method for this object with same name by recursing up through parent",
+                          "environments. Checks equivalence of methods after stripping out environment info."),
+                     param("meth_name", "Name of method to find next one of"),
+                     returns("The method or <code>NULL</code> if unable to find one.")
+                     ),
+                   next_method = function(.,meth_name) {
+                     e <- new.env()
+                     get_meth <- function(.) {
+                       f <- get(meth_name,envir=.)
+                       environment(f) <- e
+                       f
+                     }
+                     cur_meth <- get_meth(.)
+
+                     find_meth <- function(s,meth_name) {
+                       p <- s$.super
+                       if(exists(meth_name, envir=p)) {
+                         f1 <- get_meth(p)
+                         if(digest(cur_meth) != digest(f1)) {
+                           return(get(meth_name, p))
+                         } else {
+                           find_meth(p, meth_name)
+                         }
+                       } else {
+                         return(NULL)
+                       }
+                     }
+                     find_meth(., meth_name)
+                   },
+                   
+                   ## call a method if it is present. Basically do.call with
                     ## a check that the function exists
                     .doc_do_call=paste(
                       desc("Function to call method if the method exists."),
@@ -156,7 +228,8 @@ BaseTrait <- proto(
                       param("lst","List of arguments. Default is empty list")
                       ),
                     do_call = function(., fun, lst=list()) {
-                      if(exists(fun, envir=.) && is.function(FUN <- get(fun, envir=.))) {
+                      fun <- as.character(fun)
+                      if(.$has_slot(fun) && is.function(FUN <- .$get_slot(fun))) {
                         do.call(FUN, c(., lst))
                       }
                     },

@@ -1,5 +1,5 @@
 ## to install etc:
-R CMD  roxygen -d traitr
-R CMD build traitr
-R CMD check traitr_0.X.tar.gz
-R CMD INSTALL traitr_0.X.tar.gz 
+R CMD  roxygen -d traitr;
+R CMD build traitr;
+R CMD check traitr_0.3.tar.gz;
+R CMD INSTALL traitr_0.3.tar.gz
