@@ -496,7 +496,7 @@ if(0) {
   dlg$make_gui()
 }
 
-if(1) {
+if(0) {
   ## model
   dlg <- aDialog(items=list(
                    file=fileItem("", attr=list(
@@ -748,5 +748,69 @@ if(0) {
   dlg$make_gui(gui_layout=view)
   replot(dlg)
 }
-                     
 
+
+## 1. Using the choiceItem item with multiple=TRUE choices, I got an error when initializing the item with an empty selection (using character()).
+if(0) {
+  dlg <- aDialog(items=list(
+                   a=choiceItem(character(0), values=letters[1:4], multiple=TRUE)
+                   )
+                 )
+  dlg$make_gui()
+}
+
+## 2. The choiceItem item with multiple=TRUE choice did not work - when changing the selection in the widget, the value of the item did not change.
+if(0) {
+  for(n in c(3)) {
+    dlg <- aDialog(items=list(
+                     a=choiceItem(character(0), values=letters[1:n], multiple=TRUE, by_index=TRUE)
+                     )
+                   )
+    dlg$make_gui()
+    ## dlg$set_a(letters[c(1,3)])
+    ##dlg$set_a(c(1,3))
+  }
+}
+
+
+if(0) {
+    replot <- function(.) {
+    l <- .$to_R()
+    m <- .$get_item_by_name("n")
+    print(m$model$n)
+    f <- function(dist, kernel, n, bw,...) {
+      y <- switch(dist, "Normal"=rnorm(n), rexp(n))
+      plot(density(y,  bw=bw, kernel=kernel), xlim=range(y)+c(-2,2), main="Density example")
+      points(y, rep(0,n))
+    }
+    print(l)
+    do.call(f,l)
+  }
+  dlg <- aDialog(items=list(
+                 dist=choiceItem("Normal", values=c("Normal","Exponential"),
+                   show_label=FALSE),
+                 kernel=choiceItem("gaussian",
+                   values=c("gaussian", "epanechnikov", "rectangular",
+                     "triangular", "cosine"),
+                   show_label=FALSE),
+                   n=choiceItem(50L, as.integer(c(50,100,200,300)),show_label=FALSE),
+                 bw=rangeItem(value=1, from=0.05, to=2.00, by=0.05,
+                   show_label=FALSE),
+                 out=graphicDeviceItem()
+                 ),
+               help_string="Adjust a parameter to update graphic",
+               title="tkdensity through traitr",
+               buttons="Cancel",
+               model_value_changed=replot)
+  dlg$make_gui()
+}
+
+if(1) {
+  dlg <- aDialog(items=list(
+                   x=numericItem(0),
+                   y=stringItem("a")
+                   ))
+  dlg$get_x()
+  dlg$set_y("some string")
+  dlg$get_y()
+}

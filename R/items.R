@@ -158,33 +158,33 @@ Item <- BaseTrait$proto(class=c("Item", "Model", BaseTrait$class),
                          
                          ## When update_ui() is called, these two conditions are checked. If FALSE, then
                          ## the methods visible and enabled are called on the editor
-##                          .doc_visible_when=paste(
-##                            desc("Method evaluated when <code>update_ui</code> is called to determine if the",
-##                                 "item should be visible. Should evaulate to a logical."),
-##                            returns("A logical value to determine if item is visible")
-##                            ),
-##                          visible_when = function(.) {TRUE}, # function call. When update_ui called
-##                          .doc_visible=paste(
-##                            desc("Method to set visibility of editor"),
-##                            param("value","a logical")
-##                            ),
-##                          visible = function(., value) {
-##                            .$get_editor()$visible(as.logical(value))
-##                          },
-                         ## enabled
-##                          .doc_enabled_when=paste(
-##                            desc("Method evaluated when <code>update_ui</code> is called to determine if the",
-##                                 "item should be enabled (sensitive to user input). Should evaulate to a logical."),
-##                            returns("A logical value to determine if item is enabled")
-##                            ),
-##                          enabled_when = function(.) {TRUE}, # function call
-##                          .doc_enabled=paste(
-##                            desc("Method to set whether editor is enabled (sensitive to user input"),
-##                            param("value","a logical")
-##                            ),
-##                          enabled = function(., value) {
-##                            .$get_editor()$enabled(as.logical(value))
-##                          },
+                          .doc_visible_when=paste(
+                            desc("Method evaluated when <code>update_ui</code> is called to determine if the",
+                                 "item should be visible. Should evaulate to a logical."),
+                            returns("A logical value to determine if item is visible")
+                            ),
+                          visible_when = function(.) {TRUE}, # function call. When update_ui called
+                          .doc_visible=paste(
+                            desc("Method to set visibility of editor"),
+                            param("value","a logical")
+                            ),
+                          visible = function(., value) {
+                            .$get_editor()$visible(as.logical(value))
+                          },
+                       ## enabled
+                          .doc_enabled_when=paste(
+                            desc("Method evaluated when <code>update_ui</code> is called to determine if the",
+                                 "item should be enabled (sensitive to user input). Should evaulate to a logical."),
+                            returns("A logical value to determine if item is enabled")
+                            ),
+                          enabled_when = function(.) {TRUE}, # function call
+                          .doc_enabled=paste(
+                            desc("Method to set whether editor is enabled (sensitive to user input"),
+                            param("value","a logical")
+                            ),
+                          enabled = function(., value) {
+                            .$get_editor()$enabled(as.logical(value))
+                          },
                          ## a function(., rawvalue) return list with retval=TRUE for valid, retval=FALSE for invalid
                          ## pass message through mesg component
                          ## uses rawvalue, can coerce with .$coerce_with, which model does
@@ -349,9 +349,10 @@ Item <- BaseTrait$proto(class=c("Item", "Model", BaseTrait$class),
                            ## assign name as default if not already defined
                            ## need to not look up, as things like "mean", "sd" etc are found
                            ## here. Might need to change though to search over all proto objects?
-                           if(!.$model$has_local_slot(.$name))
+                           if(!.$model$has_local_slot(.$name) || is.null(.$model$get_local_slot(.$name))) {
                              .$model$assign_if_null(.$name, .$value)
-
+                           }
+                           
                            sapply(.$properties, function(i) {
                              if(.$has_slot(i))
                                val <- .$get_slot(i)
@@ -505,6 +506,17 @@ Item <- BaseTrait$proto(class=c("Item", "Model", BaseTrait$class),
 #' @param editor Specification of editor (a view) to override default
 #' @param ... Passed to parent proto object during call to proto
 #' @return A \code{proto} object. Call \code{obj\$show_help()} to view its methods and properties.
+#' @examples
+#' ## basic usage
+#' a <- stringItem("ac", name="x")
+#' a$get_x()
+#' a$set_x("abc213")
+#' a$get_x()
+#' ## eval first
+#' a <- stringItem("ac", name="x", eval_first=TRUE)
+#' a$set_x("2 + 2")
+#' a$get_x()
+#' a$to_R()
 stringItem <- function(value="",        # initial vlaue
                        regex=NULL,      # if non-null a regular expression for validation
                        name,            # for lookup with item group
@@ -557,7 +569,8 @@ stringItem <- function(value="",        # initial vlaue
   
   if(!missing(model))
     obj$set_model(model)
-
+  obj$init_model()
+  
   return(obj)
 }
 
@@ -574,6 +587,17 @@ stringItem <- function(value="",        # initial vlaue
 #' @param editor Specification of editor (a view) to override default
 #' @param ... Passed to parent proto object during call to proto
 #' @return A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.
+#' @examples
+#' ## basic use
+#' a <- numericItem(0, name="x")
+#' a$set_x(10)
+#' a$get_x()
+#' ## eval can be instructed
+#' a <- numericItem(0, name="x", eval_first=TRUE)
+#' a$set_x("1:5")
+#' a$get_x()
+#' a$to_R()
+
 numericItem <- function(value=numeric(0), # a number
                         name,            # for lookup with item group
                         label=name,      # for display
@@ -684,13 +708,14 @@ integerItem <- function(value=integer(0),
   if(!missing(attr))
     obj$attr <- merge(obj$attr, attr)
 
-  if(!missing(model)) 
-    obj$set_model(model)
-
   if(missing(editor))
     obj$editor <- EntryEditor$proto()
 
+  if(!missing(model)) 
+    obj$set_model(model)
+
   obj$init_model()
+
   return(obj)
 }
 
@@ -750,6 +775,8 @@ expressionItem <- function(value="",
   if(!missing(model))
     obj$set_model(model)
 
+  obj$init_model()
+  
   return(obj)
 }
 
@@ -767,6 +794,12 @@ expressionItem <- function(value="",
 #' @param editor Specification of editor (a view) to override default
 #' @param ... Passed to parent proto object during call to proto
 #' @return A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.
+#' @examples
+#' ## basic usage
+#' a <- trueFalseItem(TRUE, name="x")
+#' a$get_x()
+#' a$set_x(FALSE)
+#' a$get_x()
 trueFalseItem <- function(value=TRUE,
                           name,
                           label=name,
@@ -830,6 +863,32 @@ trueFalseItem <- function(value=TRUE,
 #' @param editor_type overide choice of editor by size of values. Must set attr to match desired.
 #' @param ... Passed to parent proto object during call to proto
 #' @return A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.
+#' @examples
+#' ## default is to get/set by value
+#'          a <- choiceItem("a", letters, name="x")
+#'          a$get_x()
+#'          a$set_x("b")
+#'          a$get_x()
+#' ## or by index, which can be easier to do
+#'          b <- choiceItem("a", letters, name="x", by_index=TRUE)
+#'          b$get_x()
+#'          b$set_x(2)
+#'          b$get_x()
+#' ## Size determines widget, unless you set editor_type
+#' ## a radio group
+#'          rg <- choiceItem("a", letters[1:3], name="x")
+#' ## a combobox
+#'          cb <- choiceItem("a", letters[1:8], name="x")
+#' ## a table
+#'          tb <- choiceItem("a", letters[1:26], name="x")
+#' ## adjust size of table widget
+#'          tb <- choiceItem("a", letters[1:26], name="x", attr=list(size=c(width=300,height=400)))
+#' ## Multiple and size determines widget type
+#' ## smaller uses checkboxgroup
+#'          cbg <- choiceItem("a", letters[1:5], multiple=TRUE)
+#" ## larger uses table
+#'          tbl <- choiceItem("a", letters[1:15], multiple=TRUE)
+
 choiceItem <- function(value="",
                        values="",       # items to choose from
                        by_index=FALSE,  # set/get by index or value
@@ -941,6 +1000,9 @@ choiceItem <- function(value="",
     }                  
   }
 
+  ## set default size of table -- it is just too small otherwise
+  if(ed$editor_name == "gtable" && is.null(ed$attr$size))
+    ed$attr$size <- c(300, 250)
   
   ## specify how get/set is done
   obj$editor$by_index <- by_index
@@ -1151,6 +1213,13 @@ fileItem <- function(value="",
 #' @param ... Passed to parent proto object during call to proto
 #' @return A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.
 #' @export
+#' @examples
+#' ## basic button
+#' b <- buttonItem("click me", action=function(.,h,...) {
+#'        print("hi")
+#'      })
+
+
 buttonItem <- function(value="button label",
                        action=NULL,          # function(., h, ...) {}??
                        name,            # for lookup with item group

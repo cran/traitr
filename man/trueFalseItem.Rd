@@ -14,3 +14,8 @@
 \item{model}{Optional model. Useful if one wishes to use same model for multiple views}
 \item{editor}{Specification of editor (a view) to override default}
 \item{...}{Passed to parent proto object during call to proto}}
+\examples{## basic usage
+a <- trueFalseItem(TRUE, name="x")
+a$get_x()
+a$set_x(FALSE)
+a$get_x()}

@@ -1,3 +1,14 @@
+2010-02-02  john verzani  <verzani@john-verzanis-macbook-pro.local>
+
+	* R/controller.R: put in check for model being set to NULL from widget.
+
+2010-02-01  john verzani  <verzani@john-verzanis-macbook-pro.local>
+
+	* R/editor.R: added block/unblock handler to svalue<- call.
+
+	* R/items.R: Put back update_ui/enabled ... into items. Otherwise
+	aContext doesn't have a means to work.
+
 2010-01-21  john verzani  <verzani@john-verzanis-macbook-pro.local>
 
 	* R/items.R: moved update_ui/enabled_when/visible_when out of

@@ -209,7 +209,7 @@ This provides a simple map between a function with arguments
 which makes the writing  basic GUI dialogs for R functions very
 straightforward -- no GUI
 programming is needed.~\footnote{This vignette documents
-  version 0.1 of the package. At this point, the interface is
+  version 0.4 of the package. At this point, the interface is
   experimental and subject to change.}
 
 The \pkg{traitr} package uses \pkg{gWidgets} to provide a link to a
@@ -1133,7 +1133,7 @@ The \code{tkdensity} demo is a standard in the \pkg{tcltk}
 package. Here we redo the demo using \pkg{traitr}
 (Figure~\ref{fig:tkdensity-traitr}). This function will make the
 density plot for us, in a manner similar to that of the demo.
-<<>>=
+<<replot>>=
   replot <- function(.) {
     l <- .$to_R()
     f <- function(dist, kernel, n, bw,...) {

@@ -162,7 +162,9 @@ Adapter <- Controller$proto(class=c("Adapter", Controller$class),
                                                 
                                                 ## set property in model using name
                                                 value <- svalue(h$obj)
-                                                if(isExtant(h$obj)) {
+
+                                                ## XXX added check here, not sure why it is needed. 
+                                                if(isExtant(h$obj) && !is.null(value)) {
                                                   .$model$setattr(.$property, value)
                                                 }
                                               },

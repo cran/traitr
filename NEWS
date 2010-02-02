@@ -2,6 +2,18 @@ Dear Emacs, please make this -*-Text-*- mode!
 
 NEWS for traitr
 
+Changes for 0.4:
+----------------
+
+* bug fixes to choiceItem when multiple=TRUE
+
+* put back in removal of enabled_when, visible_when for items, as
+  otherwise context containers don't work
+
+* put gWidgets, gWidgetsRGtk2 in depends. Want to put in suggests, but
+  will do so when gWIdgetsWWW works with this -- which more or less
+  does, but does have issues with some of the widgets.
+
 Changes for 0.3:
 ----------------
 

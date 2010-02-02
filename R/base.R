@@ -48,13 +48,14 @@ BaseTrait <- proto(
                     },
                    ## assign if not null
                    .doc_assign_if_null=paste(
-                     desc("Assign value or method to proto object if not present"),
+                     desc("Assign value or method to proto object if not present as local slot"),
                      param("key","Key to assign to"),
                      param("value", "Value to assign")
                      ),
                    assign_if_null=function(., key, value) {
-                     if(!.$has_local_slot(key))
+                     if(!.$has_local_slot(key)) {
                        assign(key, value, envir=.)
+                     } 
                    },
                     ## append to a property list
                     ## if a list, then optional key will set key for lookup

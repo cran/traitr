@@ -15,3 +15,12 @@
 \item{model}{Optional model. Useful if one wishes to use same model for multiple views}
 \item{editor}{Specification of editor (a view) to override default}
 \item{...}{Passed to parent proto object during call to proto}}
+\examples{## basic use
+a <- numericItem(0, name="x")
+a$set_x(10)
+a$get_x()
+## eval can be instructed
+a <- numericItem(0, name="x", eval_first=TRUE)
+a$set_x("1:5")
+a$get_x()
+a$to_R()}

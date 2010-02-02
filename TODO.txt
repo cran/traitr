@@ -1,10 +1,24 @@
 ## future releases:
 * Need to profile code as the responsiveness isn't where it should be
+* API -- are function names clear enough? Lots of styles used: camel case (R
+functions) Upper camel case (Traits), underscore proto methods. Is
+this confusing enough?
 * Need to tidy up code base, finish documentation
 * Add more item types:
   + implement formula item
   + implement data frame edit item
   + implement more items: vectors?
-* make work with gWidgets[WWW|tcltk]
+* make work with gWidgets[WWW|tcltk]. For now (0.4 version) we
+automatically load RGtk2, as a convenience, but if these get resolved,
+we will put that into suggests.
+
+The tcltk issue is that the blockHandler/unblockHandler, tag<- stuff
+needs to be implemented. 
+
+For gWidgetsWWW, there are issues in how we
+store values from the web -> R. We place into a variable
+(.gWidgetsIDX) which does not trigger the model to notify observers,
+as the gWidgetsWWW object doesn't not now about this, until it has its
+svalue() method called. This is likely not going to resolve.
 
 

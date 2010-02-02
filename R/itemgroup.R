@@ -116,7 +116,6 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
                            ),
                          make_gui = function(., container, gui_layout, parent=NULL, visible=TRUE, ...) {
                            .$init_model() # initialize model
-
                            
                            if(missing(gui_layout)) {
                              if(.$has_slot("gui_layout") && is.proto(.$gui_layout) && .$gui_layout$is("Container"))
@@ -194,10 +193,10 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
 
                            ## call init_model for each item
                            sapply(.$items, function(j) j$do_call("init_model"))
-                           
+
                            ## make get_/set_pairs
                            sapply(.$get_items_only(), function(i) {
-                             if(i$has_slot("name")) {
+                             if(i$has_slot("name")) { 
                                property <- i$name
                                .$assign_if_null(paste("get_", i$name, sep=""),
                                       function(.) {

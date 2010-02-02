@@ -145,7 +145,9 @@ Editor <- View$proto(class=c("Editor", View$class),
                      },
                      ## set value in view by name. If name is NULL, gets first
                      .doc_set_value_from_view=paste(
-                       desc("Private method for setting value from view (editor) for controller"),
+                       desc("Private method for setting value from view (editor) for controller",
+                            "When assigning through svalue, should add blockHandler/unblockHandler calls",
+                            "to prevent model from being updated, which can cause loops"),
                        param("widget_name"," name of widget, default for simple case"),
                        param("value"," value to be set into editor")
                        ),
@@ -248,11 +250,15 @@ ObjectWithValuesEditor <- Editor$proto(class=c("ObjectWithValuesEditor", Editor$
                                            ## XXX Hack to avoid errors with svalue <- call
                                            if(is.null(value) || is.na(value) ||
                                               (is.character(value) && length(value) == 0)
-                                              )
+                                              ) {
                                              return()
+                                           }
                                            curVal <- svalue(widget, .$by_index)
-                                           if(digest(curVal) != digest(value))
+                                           if(digest(curVal) != digest(value) && length(value)) {
+                                             blockHandler(widget)
                                              svalue(widget, index=.$by_index) <- value
+                                             unblockHandler(widget)
+                                           }
                                          }
                                          invisible()
                                        },
@@ -263,12 +269,17 @@ ObjectWithValuesEditor <- Editor$proto(class=c("ObjectWithValuesEditor", Editor$
                                            curVal <- svalue(widget, index=.$by_index)
                                            widget[] <- values
                                            if(.$by_index) {
+                                             blockHandler(widget)
                                              svalue(widget, index=.$by_index) <- curVal
+                                             unblockHandler(widget)
                                            } else {
                                              if(length(values) > 0 &&
                                                 length(curVal) > 0 && nchar(curVal) > 0 &&
-                                                curVal %in% values)
+                                                curVal %in% values) {
+                                               blockHandler(widget)
                                                try(svalue(widget, index=.$by_index) <- curVal, silent=TRUE)
+                                               unblockHandler(widget)
+                                             }
                                            }
                                          }
                                          invisible()
@@ -276,10 +287,13 @@ ObjectWithValuesEditor <- Editor$proto(class=c("ObjectWithValuesEditor", Editor$
                                        set_invalid=function(., ...) {},
                                        make_ui=function(., container, attr=.$attr, context=., ...) {
                                          attr$items <- context$get_values()
-                                         attr$selected = if(context$get_value() %in% context$get_values())
-                                           min(which(context$get_value() == context$get_values()))
-                                         else
-                                           1
+                                         attr$selected <- 0
+                                         if(length(context$get_value())) {
+                                           attr$selected = if(context$get_value() %in% context$get_values())
+                                             min(which(context$get_value() == context$get_values()))
+                                           else
+                                             1
+                                         }
                                          .$next_method("make_ui")(., container, attr, context, ...)
                                        },
                                        ## compact style is a label and button to pop up choice
