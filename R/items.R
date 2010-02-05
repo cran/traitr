@@ -901,7 +901,7 @@ choiceItem <- function(value="",
                        attr,
                        model,
                        editor,
-                       editor_type=c("","gradio","gcombobox","gtable","gedit"),
+                       editor_type=c("","gradio","gcombobox","gtable","gedit","gcheckboxgroup"),
                        ...) {
 
  
@@ -1000,9 +1000,14 @@ choiceItem <- function(value="",
     }                  
   }
 
-  ## set default size of table -- it is just too small otherwise
-  if(ed$editor_name == "gtable" && is.null(ed$attr$size))
-    ed$attr$size <- c(300, 250)
+  ## table adjustment
+  if(ed$editor_name == "gtable") {
+    ## single click, not double click of addHandlerChanged
+    obj$add_handler_name <- "addHandlerClicked"
+    ## set default size of table -- it is just too small otherwise
+    if(is.null(ed$attr$size))
+      ed$attr$size <- c(300, 250)
+  }
   
   ## specify how get/set is done
   obj$editor$by_index <- by_index

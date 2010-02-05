@@ -1,3 +1,8 @@
+2010-02-05  john verzani  <verzani@john-verzanis-macbook-pro.local>
+
+	* R/items.R (choiceItem): bug fix
+	(obj$validate): fix to table and handler
+
 2010-02-02  john verzani  <verzani@john-verzanis-macbook-pro.local>
 
 	* R/controller.R: put in check for model being set to NULL from widget.

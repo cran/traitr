@@ -2,6 +2,14 @@ Dear Emacs, please make this -*-Text-*- mode!
 
 NEWS for traitr
 
+Changes for 0.5:
+----------------
+
+* fix to choiceItem when table used. Single click selects.
+
+* bug fix for choiceItem with arguments
+
+
 Changes for 0.4:
 ----------------
 

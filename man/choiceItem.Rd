@@ -3,8 +3,8 @@
 \title{Item for choosing one of several values...}
 \usage{choiceItem(value="", values="", by_index=FALSE, multiple=FALSE,
     editable=FALSE, name, label=name, help="", tooltip="", attr, model,
-    editor, editor_type=c("", "gradio", "gcombobox", "gtable",
-    "gedit"), ...)}
+    editor, editor_type=c("", "gradio", "gcombobox", "gtable", "gedit",
+    "gcheckboxgroup"), ...)}
 \description{Item for choosing one of several values}
 \value{A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.}
 \arguments{\item{value}{Default value for the model. This is specified by index (or indices if \code{multiple=TRUE})}
