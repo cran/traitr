@@ -185,12 +185,17 @@ Editor <- View$proto(class=c("Editor", View$class),
                      }
                      )
 
+## Various editor traits for different case
+## see also special files (eg. itemlist) for others
+
+
+
 #' A Base Trait for an editor using the entry widget
 #' @export
 EntryEditor <- Editor$proto(class=c("EntryEditor", Editor$class),
                             .doc_format_fun=paste(
                               desc("A function to call to coerce the value before displaying in entry",
-                                   "widget."),
+                                   "widget. Set to <code>NULL</code> for no coercion."),
                               param("value"," value to coerce")
                               ),
                             format_fun = function(., value) sprintf("%s",value),
@@ -203,7 +208,6 @@ EntryEditor <- Editor$proto(class=c("EntryEditor", Editor$class),
 
                             },
                             ## draw widget in valid state
-
                             set_valid=function(.) {
                               widget <- .$get_widget_by_name(.$view_widget_name)
                               if(!is.proto(widget)) {
@@ -225,7 +229,7 @@ EntryEditor <- Editor$proto(class=c("EntryEditor", Editor$class),
                               if(!is.proto(widget)) {
                                 e <- getToolkitWidget(widget)
                                 if(inherits(e, "RGtkObject")) {
-                                  ## set backgroup
+                                  ## set background
                                   require(RGtk2)
                                   e$modifyBg(GtkStateType['normal'],"red")
                                 } else {

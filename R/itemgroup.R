@@ -86,6 +86,10 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
                          get_item_by_name = function(., name) {      # item by name
                            .$get_items()[[name]]
                          },
+                         .doc_icon=paste(
+                           desc("An icon for identification purposes. Use an empty string for no icon.")
+                           ),
+                         icon="",    # XXX modify
                          ## to get values from the items
                          .doc_to_R=paste(
                            desc("Method to take values in model and return as a named list. Names",

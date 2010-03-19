@@ -1,5 +1,5 @@
-## to install etc:
+## Private notes to install etc with roxygen code
 R CMD  roxygen -d traitr;
 R CMD build traitr;
-R CMD check traitr_0.4.tar.gz;
-R CMD INSTALL traitr_0.4.tar.gz
+R CMD check traitr_0.XX.tar.gz;
+R CMD INSTALL traitr_0.XX.tar.gz

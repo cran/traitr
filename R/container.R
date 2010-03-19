@@ -110,12 +110,17 @@ Container <- BaseTrait$proto(class=c("Container", BaseTrait$class),
 
                                 cont <- .$make_container(container, attr)
                                 sapply(.$children, function(i) {
+
                                   if(is.null(i))
                                     return()
 
                                   ## first, if a character, convert to the object
                                   if(is.character(i)) {
                                     i <- context$get_item_by_name(i)
+                                    if(is.null(i)) {
+                                      cat(sprintf("Can't find item named %s", i))
+                                      return()
+                                    }
                                   }
                                   if(!is.proto(i)) {
                                     stop("Should be Item, ItemGroup or Container")
@@ -178,8 +183,14 @@ Container <- BaseTrait$proto(class=c("Container", BaseTrait$class),
                                 if(.$is_realized()) {
                                   if(!is.null(.$children) && length(.$children) > 0)
                                     sapply(.$children, function(i) {
-                                      if(is.character(i))
+                                      if(is.character(i)) {
                                         i <- .$context$get_item_by_name(i)
+                                        if(is.null(i)) {
+                                          cat(sprintf("Can't find item named %s", i))
+                                          return()
+                                        }
+                                      }
+                                        
                                       if(is.proto(i))
                                         i$do_call("update_ui", list())
                                     })
@@ -218,7 +229,7 @@ Container <- BaseTrait$proto(class=c("Container", BaseTrait$class),
 ## Various container constructors
 
 ## this is technical to give some children a context
-#' A container to give a different context that the default for a set of items
+#' A container to give a different context than the default for a set of items
 #'
 #' @param context ItemGroup or item to get context from
 #' @param enabled_when Method to determine when items in container should be enabled
@@ -237,8 +248,15 @@ aContext <- function(...,
     ## apply to children
     invisible(
               sapply(.$children, function(i) {
+                if(is.null(i))
+                  return()
+                
                 if(is.character(i)) {
                   i <- context$get_item_by_name(i)
+                  if(is.null(i)) {
+                    cat(sprintf("Can't find item named %s", i))
+                    return()
+                  }                  
                 }
                 if(!is.proto(i)) {
                   stop("Should be Item, ItemGroup or Container")
@@ -251,8 +269,14 @@ aContext <- function(...,
     ## apply to children
     invisible(
               sapply(.$children, function(i) {
+                if(is.null(i))
+                  return()
                 if(is.character(i)) {
                   i <- context$get_item_by_name(i)
+                  if(is.null(i)) {
+                    cat(sprintf("Can't find item named %s", i))
+                    return()
+                  }                  
                 }
                 if(!is.proto(i)) {
                   stop("Should be Item, ItemGroup or Container")
@@ -268,7 +292,7 @@ aContext <- function(...,
 }
 
 ## Basic container uses a "1" column table layout
-#' A container to give a different context that the default for a set of items
+#' A container to give a different context than the default for a set of items
 #'
 #' @param context ItemGroup or item to get context from
 #' @param enabled_when Method to determine when items in container should be enabled

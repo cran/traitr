@@ -74,6 +74,11 @@ Item <- BaseTrait$proto(class=c("Item", "Model", BaseTrait$class),
                            desc("If not an empty string, provides tooltip text for widget")
                            ),
                          tooltip = "",        # for tooltip. Shorter than help
+                        ## icon
+                        .doc_icon=paste(
+                          desc("A gWidgets stock icon for this item, empty string for no icon")
+                          ),
+                        icon="",
                         ## attr
                          .doc_attr=paste(
                            desc("List of attributes to pass to constructor of editor. Include size=c(x,y) to set size")
@@ -484,7 +489,7 @@ Item <- BaseTrait$proto(class=c("Item", "Model", BaseTrait$class),
 
 ##################################################
 ## Various Item instances
-
+## See also some special files (eg. itemlist) for others
 
 ## Item instances
 ## An instance must have
@@ -722,6 +727,7 @@ integerItem <- function(value=integer(0),
 
 #' Item for typing in R expressions. These are evaluated in .GlobalEnv prior to return
 #'
+#' @export
 #' @param value Default value for the model
 #' @param name Required name for object. Names should be unique within a group of items
 #' @param label Optional label, default value is the name

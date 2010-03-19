@@ -2,6 +2,19 @@ Dear Emacs, please make this -*-Text-*- mode!
 
 NEWS for traitr
 
+Changes for 0.7:
+----------------
+
+* Minor doc fix to keep CRAN happy
+
+Changes for 0.6:
+---------------
+
+* new item itemList for storing a list of items or
+  itemgroups. Requires newer gWidgetsRGtk2.
+
+* added some basic unit tests
+
 Changes for 0.5:
 ----------------
 

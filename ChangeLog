@@ -1,3 +1,12 @@
+2010-03-17  john verzani  <verzani@john-verzanis-macbook-pro.local>
+
+	* R/itemlist.R (itemList): Added new constructor to keep a list of
+	items or itemgroups
+
+2010-03-15  john verzani  <verzani@john-verzanis-macbook-pro.local>
+
+	* R/items.R: fix missing @export for expressionItem
+
 2010-02-05  john verzani  <verzani@john-verzanis-macbook-pro.local>
 
 	* R/items.R (choiceItem): bug fix

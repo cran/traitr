@@ -1,4 +1,6 @@
 ## future releases:
+* make_gui -- pass in attr so that gwindow can have size set, ...
+* Tom T. has code to simplify basic usage
 * Need to profile code as the responsiveness isn't where it should be
 * API -- are function names clear enough? Lots of styles used: camel case (R
 functions) Upper camel case (Traits), underscore proto methods. Is

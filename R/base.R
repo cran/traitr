@@ -144,12 +144,11 @@ BaseTrait <- proto(
                      } 
                      assign(key, value, envir=.)
                    },
-                    ## return all objects in the widget
-                    ## if class is non-null will return only our proto objects of that "class"
-                    .doc_list_objects=paste(
-                      desc("List all objects in the widget."),
-                      returns("Returns a list with components methods and properties")
-                      ),
+                   ## return all objects in the widget
+                   .doc_list_objects=paste(
+                     desc("List all objects in the widget."),
+                     returns("Returns a list with components methods and properties")
+                     ),
                    list_objects = function(., all.names=FALSE) {
                      s <- .
                      is_method <- function(lst, env) {
@@ -177,17 +176,17 @@ BaseTrait <- proto(
                    },
                    
                    ## return non functions (properties)
-                    ## will return objects or just names if return_names=TRUE
-                    ## can pass class= value if desired
-                    .doc_list_properties=paste(
-                      desc("Return all properties (non-methods) for this proto object."),
-                      param("class","If non-NULL, returns only from objects of this class.")
-                      ),
-                    list_properties=function(., all.names=FALSE) .$list_objects(all.names)$properties,
+                   ## will return objects or just names if return_names=TRUE
+                   ## can pass class= value if desired
+                   .doc_list_properties=paste(
+                     desc("Return all properties (non-methods) for this proto object."),
+                     param("class","If non-NULL, returns only from objects of this class.")
+                     ),
+                   list_properties=function(., all.names=FALSE) .$list_objects(all.names)$properties,
                    ## list methods
                    .doc_list_methods=paste(
-                      desc("Method to list all possible methods for object")
-                      ),
+                     desc("Method to list all possible methods for object")
+                     ),
                    list_methods=function(., all.names=FALSE) .$list_objects(all.names)$methods,
                    ## find next method that is different or return NULL
                    .doc_next_method=paste(

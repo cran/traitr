@@ -18,6 +18,7 @@ source("../R/editor.R")
 source("../R/items.R")
 source("../R/itemgroup.R")
 source("../R/dialog.R")
+source("../R/itemList.R")
 
 
 ## Test MVC ##################################################
@@ -804,13 +805,55 @@ if(0) {
                model_value_changed=replot)
   dlg$make_gui()
 }
-
+## test itemList
 if(1) {
-  dlg <- aDialog(items=list(
-                   x=numericItem(0),
-                   y=stringItem("a")
-                   ))
-  dlg$get_x()
-  dlg$set_y("some string")
-  dlg$get_y()
+  item <- itemList(items=list(),
+                   items_name="Personnel",
+                   item_factory = function(.) {
+                     a <- anItemGroup(items=list(
+                                        name=stringItem(""),
+                                        rank=choiceItem("Private", values=c("Private","Sergeant","General")),
+                                        serial.number = stringItem("", label="Serial number")))
+                     a$post_process <- function(.) {
+                       .$icon <- switch(.$get_rank(),
+                                        "Private"="ok",
+                                        "Sergeant" = "delete",
+                                        "cancel")
+                     }
+                     a$to_string <- function(.) .$to_R()$name
+                     return(a)
+                   },
+                   name="itemlist")
+  item$make_ui(container=gwindow("Add personnel"))
+
 }
+
+## formula
+if(0) {
+  dfi <- dataframeItem(name="df")
+  f <- anItemGroup(items=list(
+                     df = dfi,
+                     response=variableSelectorItem(dataframeItem=dfi),
+                     predictor=itemList(
+                       items=list(),
+                       items_name="Terms",
+                       item_factory=function(.) {
+                         variableSelectorItem(dataframeItem=dfi)
+                       }
+                       )
+                     ),
+                   to_R = function(.) {
+                     vals <- .$next_method("to_R")(.)
+                     f <- paste(vals$response, "~",
+                                paste(unlist(vals$predictor), collapse=" + "),
+                                ",", "data=", vals$df, sep = " ")
+                     f
+                   })
+  layout <- aGroup(aTableLayout("df","response"), aContainer("predictor"), horizontal=TRUE)
+                   
+  f$make_gui(container=gwindow("test"), gui_layout=layout)
+}
+                     
+                     
+                       
+                                          

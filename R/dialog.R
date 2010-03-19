@@ -24,14 +24,32 @@ roxygen()
 #' @export
 Dialog <- ItemGroup$proto(class=c("Dialog", ItemGroup$class),
                           ## window title
+                          .doc_title=paste(
+                            desc("Title of dialog window")
+                            ),
                           title="Dialog title",
                           ## called by default help button handler
+                          .doc_help_string=paste(
+                            desc("String called by default Help button handler")
+                            ),
                           help_string="",
                           ## !is.null to create a status bar
+                          .doc_status_text=paste(
+                            desc("If non <code>NULL</code> this text appears in bottom statusbar.",
+                                 "When there is a status bar, see also <code>set_status_text</code>")
+                            ),
                           status_text=NULL,
                           ## If !is.null, specifies list to pass to gmenu
+                          .doc_menu_list=paste(
+                            desc("If non <code>NULL</code> this list is passed to <code>gmenu</code>",
+                                 "to make a menu bar")
+                            ),
                           menu_list = NULL,
-                          ## If !is.null, specifies list to pass to gmenu                          
+                          ## If !is.null, specifies list to pass to gtoolbar
+                          .doc_toolbar_list=paste(
+                            desc("If non <code>NULL</code> this list is passed to <code>gtoolbar</code>",
+                                 "to make a toolbar.")
+                            ),
                           toolbar_list=NULL,
                           ## Buttons are OK, Cancel, Help, or any other name. The button handler
                           ## is NAME_handler defined as follows
@@ -50,16 +68,31 @@ Dialog <- ItemGroup$proto(class=c("Dialog", ItemGroup$class),
                           buttons=c("OK", "Cancel","SPACE", "Help"),#, "Undo","Redo"), 
                           ## Default button handlers. OK_handler needs to be
                           ## overridden in the instance
+                          doc_OK_handler=paste(
+                            desc("Handler called when 'OK' button is clicked -- if 'OK' button among <code>buttons</code>property.")
+                            ),
                           OK_handler=function(.) {
                             print(.$to_R())
                           },
+                          doc_Cancel_handler=paste(
+                            desc("Handler called when 'Cancel' button is clicked -- if 'Cancel' button among <code>buttons</code>property.")
+                            ),                          
                           Cancel_handler = function(.) {
                             dispose(.$get_widget('toplevel'))
                           },
+                          doc_Help_handler=paste(
+                            desc("Handler called when 'Help' button is clicked -- if 'Help' button among <code>buttons</code>property.")
+                            ),
                           Help_handler = function(.) {
                             gmessage(c("Help", .$help_string), icon="info", parent=.$get_widget('toplevel'))
                           },
+                          doc_Undo_handler=paste(
+                            desc("Handler called when 'Undo' button is clicked -- if 'Undo' button among <code>buttons</code>property.")
+                            ),
                           Undo_handler=function(.) .$undo(),
+                          doc_Redo_handler=paste(
+                            desc("Handler called when 'Redo' button is clicked -- if 'Redo' button among <code>buttons</code>property.")
+                            ),
                           Redo_handler=function(.) .$redo(),
                           ## on_realized is called after make_gui
                           on_realized = function(.) {
@@ -84,6 +117,7 @@ Dialog <- ItemGroup$proto(class=c("Dialog", ItemGroup$class),
                                   "Call on_realized method, if defined after construction"
                                   )
                             ),
+                          ### JV: XXX Add in attr for gwindow call
                           make_gui=function(., gui_layout=.$make_default_gui_layout(), parent=NULL, visible=TRUE) {
                             .$init_model() # initialize model ## also called in aDialog?
 
@@ -132,10 +166,18 @@ Dialog <- ItemGroup$proto(class=c("Dialog", ItemGroup$class),
                                 .$do_call(sprintf("%s_handler", button_name), list())
                               }, action=list(self=., button_name=i))
                             })
-                            ## status bar
-                            if(!is.null(.$status_text))
+                            ## status bar if requested
+                            if(!is.null(.$status_text)) {
                               widgets[['statusbar']] <- gstatusbar(.$status_text, cont=widgets[['toplevel']])
-
+                              .$.doc_set_status_text <- paste(
+                                desc("Method to update text in status bar"),
+                                param("value","New value for status bar")
+                                )
+                              .$set_status_text <- function(., value) {
+                                sb <- .$get_widget('statusbar')
+                                svalue(sb) <- value
+                              }
+                            }
                             ## set visible if requested
                             visible(widgets[['toplevel']]) <- visible
 
@@ -154,11 +196,18 @@ Dialog <- ItemGroup$proto(class=c("Dialog", ItemGroup$class),
                             invisible()
                           },
                           ## close the gui
+                          .doc_close_gui=paste(
+                            desc("Method call to delete GUI window")
+                            ),
                           close_gui = function(.) {
                             l <- .$widget_list
                             try(dispose(l$toplevel), silent=TRUE)
                           },
                           ## toggle visibility of top level window of dialog
+                          .doc_visible=paste(
+                            desc("Method call to toggle visibility of toplevel widget"),
+                            param("value","Logical indicating if window should be visible")
+                            ),
                           visible=function(., value=TRUE) {
                             widget <- .$get_widget('toplevel')
                             visible(widget) <- as.logical(value)
@@ -171,19 +220,7 @@ Dialog <- ItemGroup$proto(class=c("Dialog", ItemGroup$class),
                             if(.$has_local_slot(".statusbar"))
                               svalue(.$.statusbar) <- value
                           },
-                          ## return list of values from each Item and ItemGroup in items
-                          ## should be able to pass to do.call for function evaluation
-                          to_R=function(.) {
-                            l <- list()
-                            for(i in .$items) l <- c(l, i$to_R())
-                            l
-                          },
-                          to_string=function(.) {
-                            l <- list()
-                            for(i in .$items) l <- c(l, i$to_string())
-                            l
-                          },
-                          ##
+                          ## add in undo/redo then call for itemGroup
                           update_ui=function(.) {
                             ## undo/redo buttons
                             undo <- .$get_widget("Undo");
@@ -193,7 +230,6 @@ Dialog <- ItemGroup$proto(class=c("Dialog", ItemGroup$class),
                             if(!is.null(redo) && isExtant(redo))
                               enabled(redo) <- .$undo_can_redo()
 
-                            
                             .$next_method("update_ui")(.)
                           } 
                           )

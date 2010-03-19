@@ -625,7 +625,8 @@ df <- rbind(
             c("variableSelectorItem","To select a variable from a data frame"),
             c("graphicDeviceItem","(RGtk2 only) To embed a graphic device"),
             c("formulaItem", "For formula specification (to be written)"),
-            c("dfeditItem", "To edit a data set (to be written)")
+            c("dfeditItem", "To edit a data set (to be written)"),
+            c("itemList", "An item that stores a list of other items (or itemgroups)")
             )
 colnames(df) <- c("Constructor","Description")
 cat(booktabs(df,
@@ -659,6 +660,9 @@ dlg <- aDialog(items=list(
                  ))
 dlg$make_gui()
 @ 
+
+The \constructor{itemList} constructor is used to create a list of items or item
+groups. See~\ref{sec:codeitemlist-item} for examples.
 
 \subsection{Item groups}
 \label{sec:item-groups}
@@ -1180,6 +1184,81 @@ view <- aGroup(aContainer(aFrame("dist", label="Distribution"),
   dlg$make_gui(gui_layout=view)
   replot(dlg)                           # initial plot
 @ 
+
+\subsection{The \code{itemList} item}
+\label{sec:codeitemlist-item}
+
+One of the drawbacks with this framework is that it is not geared
+around \R's vectorized treatment of parameters and data. Although, the
+basic items, such as \code{numericItem}, can hold a vector of data,
+the editor for that is not helpful. The \code{itemList} item is used
+to get around this. It stores a list of items or itemgroups and has a
+means to edit on a per item basis. The basic usage depends on
+specifying how new items are to be constructed. The argument
+\code{item\_factory} is where this is specified. Here are a few
+examples of it being used.
+
+The most basic usage is to edit a vector of values, as here where the
+items are numeric.
+<<>>=
+i1 <- itemList(items=list(),
+               items_names="x",
+               item_factory=function(.) numericItem(0)
+               )
+i1$make_ui(container=gwindow("Basic Use"))
+@ 
+If we add some items, we see that the \code{to\_R} method will return
+a list of item values.
+<<>>=
+## add some items offline
+for(i in 1:2) i1$append_item(i1$item_factory())
+@ 
+<<>>=
+i1$to_R()
+@ 
+
+If we want to make a data frame editor, we can do so as
+follows. Rather than have a single item, we have an item group to
+edit. The new \code{to\_string} method is needed as this method gets
+called to label the table that shows the list of defined items. It
+should return a character vector of length $1$.
+<<>>=
+i2 <- itemList(items=list(),
+               items_names="Data frame rows",
+               item_factory=function(.) {
+                 ig <- anItemGroup(items=list(a=numericItem(0), b=stringItem("")))
+                 ig$to_string <- function(.) .$get_b()
+                 ig
+               })
+@ 
+
+We provide a custom \code{to\_R} method to take the output and
+place into a data frame. (Suggestions for a more elegant solution here
+are most welcome.)
+<<>>=
+i2$to_R <- function(.) {
+  items <- .$get_value()
+  if(length(items) == 0) {
+    out <- as.data.frame(.$item_factory()$to_R(), stringsAsFactors=FALSE)[0,]
+  } else {
+    out <- as.data.frame(items[[1]]$to_R(), stringsAsFactors=FALSE)
+    if(length(items) > 1) {
+      for(i in 2:length(items))
+        out[i,] <- items[[i]]$to_R()
+    }
+  }
+  out
+}
+@ 
+
+And the basic call:
+<<>>=
+i2$make_ui(container=gwindow("Basic Use to make data frame"))
+@               
+
+Finally, the manual page's example illustrates the \code{post\_process}
+method call and how to add in icons to the item list.
+
 
 \subsection{A GUI for read.csv and read.table}
 \label{sec:gui-read.csv-read.t}

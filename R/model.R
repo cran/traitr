@@ -45,7 +45,7 @@ Model <- BaseTrait$proto(class=c("Model", BaseTrait$class),
                            returns("No return value")
                            ),
                           notify_observers = function(., key=NULL, value=NA, old_value=NA, notify_private=TRUE) {
-                            sapply(.$.observers, function(i) {
+                            sapply(.$list_observers(), function(i) {
                               if(digest(value) != digest(old_value)) { #serialize, then compare
                                 if(!is.null(key)) {
                                   ## call private ones if...
@@ -84,7 +84,7 @@ Model <- BaseTrait$proto(class=c("Model", BaseTrait$class),
                             param("observer"," observer to remove")
                             ),
                           remove_observer = function(., observer) {
-                            if(!missing(observer) && (is.proto(observer) && observer$is("Controller"))) {
+                            if(!missing(observer) && (is.proto(observer) && observer$is(c("Controller","Model")))) {
                               ind <- sapply(.$.observers, function(i) i$identical(observer))
                               if(any(ind))
                                 sapply(which(ind), function(i) .$.observers[[i]] <- NULL)

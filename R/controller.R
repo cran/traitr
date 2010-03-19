@@ -33,8 +33,18 @@ Controller <- BaseTrait$proto(class=c("Controller", BaseTrait$class),
                                ## make a new controller child must override some methods
 
                                ## get/set model
+                              .doc_model=paste(
+                                desc("Model property. See <code>set/get_model</code>")
+                                ),
                                model=NULL,
+                              .doc_get_model=paste(
+                                desc("get the model associated to the controller")
+                                ),
                                get_model=function(.) .$model,
+                              .doc_set_model=paste(
+                                desc("set the model associated to the controller. Moves the observer"),
+                                param("model","Model instance")
+                                ),
                                set_model = function(., model) {
                                  if(is.proto(model) && model$is("Model")) {
                                    .$model$remove_observer(.)
@@ -45,8 +55,15 @@ Controller <- BaseTrait$proto(class=c("Controller", BaseTrait$class),
                                },
                                ## get/set view controller object
                                view=NULL,
+                              .doc_get_view=paste(
+                                desc("Return view associated with the controller")
+                                ),
                                get_view=function(.) .$view,
                                ## set view, remove old if present
+                              .doc_set_view=paste(
+                                desc("Set view associated with the controller"),
+                                param("view","View instance")
+                                ),
                                set_view = function(., view) {
                                  if(is.proto(view) && view$is("View")) {
                                    if(is.proto(.$get_view()) && .$get_view()$is("View"))
@@ -62,12 +79,21 @@ Controller <- BaseTrait$proto(class=c("Controller", BaseTrait$class),
                                 
                                ## sets function to listen for changes to view
                                ## might just define .$property_NAME_value_changed method
+                              .doc_update_from_model=paste(
+                                desc("Method call to set up model -> view update")
+                                ),
                                update_from_model=function(.) {},
 
                                ## transfers changes to model back from view
+                              .doc_update_from_view=paste(
+                                desc("Method call to update model from view.")
+                                ),
                                update_from_view = function(.) {},
 
                                ## function to register adapters if .$adapters non empty
+                              .doc_register_adapters=paste(
+                                desc("Register adapters, if any")
+                                ),
                                register_adapters = function(.) {
                                  if(length(.$adapters) && !length(.$.adapters)) {
                                    .$.adapters <- lapply(.$adapters, function(i) {
@@ -85,6 +111,10 @@ Controller <- BaseTrait$proto(class=c("Controller", BaseTrait$class),
                                },
                                ## intialize controller
                                ## updates model, view and any adapters
+                              .doc_init =paste(
+                                desc("Initialize controller. Calls update_from_model,",
+                                     "update_from_view, register_adapters")
+                                ),
                                init = function(.) {
                                  if(!is.null(.$get_model())) {
                                    .$update_from_model()
@@ -110,7 +140,7 @@ Controller <- BaseTrait$proto(class=c("Controller", BaseTrait$class),
 
                                ## When a property of a model is changed through set_PROPERTYNAME
                                ## then methods of this type are called
-                              ## property_PROPERTYNAME_value_changed = function(., value, old_value) {},
+                              ## property_PROPERTYNAME_value_changed = function(., value, old_value,...) {},
 
                                ## Private properties
                                .adapters=list(), # actual instances
