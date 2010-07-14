@@ -13,15 +13,15 @@
 ##  A copy of the GNU General Public License is available at
 ##  http://www.r-project.org/Licenses/
 
-#' @include container.R
+##' @include container.R
 roxygen()
 
 ## Basic editor is a view only. The Item is the model and controller
 
-#' Base Trait for Editor.
-#'
-#' An editor is a basic view for a widget, essentially a map from gedit, say, to a view
-#' @export
+##' Base Trait for Editor.
+##'
+##' An editor is a basic view for a widget, essentially a map from gedit, say, to a view. 
+##' @export
 Editor <- View$proto(class=c("Editor", View$class),
                      ## used in make_ui to make widget, or override make_ui ifd esird
                      .doc_editor_name=paste(
@@ -50,10 +50,13 @@ Editor <- View$proto(class=c("Editor", View$class),
                             "Item constructor. This just creates the widget")
                      ),
                      make_ui = function(., container, attr=.$attr, context=., ...) {
+                       theSize <- attr$size; attr$size <- NULL
                        attr$container <- container
+
                        widget <- do.call(.$editor_name, attr)
-                       if(!is.null(attr$size))
-                         size(widget) <- attr$size
+                       visible(widget) <- TRUE
+                       if(!is.null(theSize))
+                         size(widget) <- theSize
 
                        if(!is.null(context$tooltip) && nchar(context$tooltip) > 0)
                          tooltip(widget) <- context$tooltip
@@ -71,7 +74,7 @@ Editor <- View$proto(class=c("Editor", View$class),
                          else
                            stop(gettext("The container argument, if a proto object, needs to be a Container"))
                        }
-                       
+
                        ## XXX should add label etc. 
                        ## set up labels, etc. Here context may be item to grab label, ...
                        if(!.$is_realized()) {
@@ -89,6 +92,7 @@ Editor <- View$proto(class=c("Editor", View$class),
                            col_no <- get_with_default(tag(cont, "col_no"), 1)
                            no_cols <- get_with_default(tag(cont, "no_cols"), 1)
 
+                           
                            if(context$show_label) {
                              ## add label and group for widget
                              cont[row_no, 2*(col_no-1) + 1, anchor=c(1,1)] <-
@@ -140,11 +144,14 @@ Editor <- View$proto(class=c("Editor", View$class),
                          .$view_widget_name
                        else
                          1
+                       index <- get_with_default(.$get_slot("by_index"), FALSE)
                        if(isExtant(.$widgets[[nm]]))
-                          svalue(.$widgets[[nm]])
+                          val <- svalue(.$widgets[[nm]], index=index)
+                       else
+                         val <- NULL
                      },
                      ## set value in view by name. If name is NULL, gets first
-                     .doc_set_value_from_view=paste(
+                     .doc_set_value_in_view=paste(
                        desc("Private method for setting value from view (editor) for controller",
                             "When assigning through svalue, should add blockHandler/unblockHandler calls",
                             "to prevent model from being updated, which can cause loops"),
@@ -156,9 +163,11 @@ Editor <- View$proto(class=c("Editor", View$class),
                        if(.$is_realized()) {
                          widget <- .$get_widget_by_name(widget_name)
                          cur_val <- svalue(widget)
+                         index <- get_with_default(.$get_slot("by_index"), FALSE)
+                         
                          if(digest(cur_val) != digest(value)) {
                            blockHandler(widget)
-                           try(svalue(widget) <- value, silent=TRUE)
+                           try(svalue(widget, index=index) <- value, silent=TRUE)
                            unblockHandler(widget)
                          }
                        }
@@ -190,8 +199,9 @@ Editor <- View$proto(class=c("Editor", View$class),
 
 
 
-#' A Base Trait for an editor using the entry widget
-#' @export
+##' A Base Trait for an editor using the entry widget
+##'
+##' @rdname Editor
 EntryEditor <- Editor$proto(class=c("EntryEditor", Editor$class),
                             .doc_format_fun=paste(
                               desc("A function to call to coerce the value before displaying in entry",
@@ -199,7 +209,7 @@ EntryEditor <- Editor$proto(class=c("EntryEditor", Editor$class),
                               param("value"," value to coerce")
                               ),
                             format_fun = function(., value) sprintf("%s",value),
-                            make_ui = function(., container, attr=.attr, context=., ...) {
+                            make_ui = function(., container, attr=.$attr, context=., ...) {
                               if(!is.null(.$format_fun))
                                 attr$text <- .$format_fun(context$value)
                               else
@@ -240,10 +250,10 @@ EntryEditor <- Editor$proto(class=c("EntryEditor", Editor$class),
                             )
                             
 
-#' Base trait for editor where there are underlying values to choose from
-#'
-#' editor has regular or compact style
-#' @export
+##' Base trait for editor where there are underlying values to choose from
+##'
+##' editor has regular or compact style
+##' @rdname Editor
 ObjectWithValuesEditor <- Editor$proto(class=c("ObjectWithValuesEditor", Editor$class),
                                        editor_name="gradio",
                                        by_index=FALSE, # select, set by index
@@ -251,8 +261,11 @@ ObjectWithValuesEditor <- Editor$proto(class=c("ObjectWithValuesEditor", Editor$
                                        set_value_in_view = function(.,widget_name=.$view_widget_name, value) {
                                          if(.$is_realized()) {
                                            widget <- .$get_widget_by_name(widget_name)
-                                           ## XXX Hack to avoid errors with svalue <- call
-                                           if(is.null(value) || is.na(value) ||
+                                           if(length(value) == 0) { # clear out
+                                             blockHandler(widget)
+                                             svalue(widget, index=.$by_index) <- value
+                                             unblockHandler(widget)
+                                           } else if(is.null(value) || is.na(value) ||
                                               (is.character(value) && length(value) == 0)
                                               ) {
                                              return()
@@ -292,11 +305,22 @@ ObjectWithValuesEditor <- Editor$proto(class=c("ObjectWithValuesEditor", Editor$
                                        make_ui=function(., container, attr=.$attr, context=., ...) {
                                          attr$items <- context$get_values()
                                          attr$selected <- 0
+                                         
                                          if(length(context$get_value())) {
-                                           attr$selected = if(context$get_value() %in% context$get_values())
-                                             min(which(context$get_value() == context$get_values()))
-                                           else
-                                             1
+                                           value <- context$get_value()
+                                           values <- context$get_values()
+                                           if(.$by_index) {
+                                             selected <- value
+                                           } else if(.$has_slot("multiple") && .$multiple) {
+                                             which(values %in% value)
+                                           } else {
+                                             if(value %in% values) {
+                                               selected <- min(which(value %in% values))
+                                             } else {
+                                               selected <- 1
+                                             }
+                                             attr$selected <- selected
+                                           }
                                          }
                                          .$next_method("make_ui")(., container, attr, context, ...)
                                        },
@@ -343,29 +367,30 @@ ObjectWithValuesEditor <- Editor$proto(class=c("ObjectWithValuesEditor", Editor$
                                        )
 
 
-#' Trait for Editor for TRUE/FALSE selection
-#'
-#' Editor has regular or compact style
-#' @export
+##' Trait for Editor for TRUE/FALSE selection
+##'
+##' Editor has regular or compact style
+##' @rdname Editor
 BooleanEditor <- Editor$proto(class=c("BooleanEditor", Editor$class),
                               editor_name="gcombobox",
-                              make_ui=function(., container, attr=.attr, context, ...) {
+                              make_ui=function(., container, attr=.$attr, context, ...) {
                                 attr$items <- c(TRUE, FALSE)
                                 .$next_method("make_ui")(., container, attr, context, ...)
                               },
-                              make_ui_compact=function(., container, attr=.attr, context, ...) {
+                              make_ui_compact=function(., container, attr=.$attr, context, ...) {
                                 widget <- gcheckbox("", cont=container)
                                 .$append("widgets", widget, key=.$view_widget_name)
                               }
                               )
 
-#' Trait for making a range editor (slider, spinbox)
-#' @export
+##' Trait for making a range editor (slider, spinbox)
+##'
+##' @rdname Editor
 RangeEditor <- Editor$proto(class=c("RangeEditor", Editor$class),
                             view_widget_name="slider",
                             ## makes combo UI. Must also adjust the
                             ## set_value_in_view method
-                            make_ui = function(., container, attr=.attr, context=., ...) {
+                            make_ui = function(., container, attr=.$attr, context=., ...) {
                               g <- ggroup(cont=container, horizontal=TRUE)
                               l <- list(from=context$from,
                                         to=context$to,
@@ -374,11 +399,13 @@ RangeEditor <- Editor$proto(class=c("RangeEditor", Editor$class),
                                         cont=g,
                                         expand=TRUE)
                               slider <- do.call("gslider",l)
+                              visible(slider) <- TRUE
                                .$append("widgets", slider, key=.$view_widget_name)
                               by <- context$by
                               if(as.integer(by) == by) {
                                 l$expand <- FALSE
                                 spinner <- do.call(gspinbutton,l)
+                                visible(spinner) <- TRUE
                                 .$append("widgets", spinner, key="spinner")
                               }
                                                 
@@ -411,104 +438,67 @@ RangeEditor <- Editor$proto(class=c("RangeEditor", Editor$class),
                               )
                             
 
-#' Trait for button editor
-#' @export
+##' Trait for button editor
+##'
+##' @rdname Editor
 ButtonEditor <- Editor$proto(class=c("ButtonEditor", Editor$class),
                              editor_name="gbutton",
                              attr=list(),
-                             make_ui=function(., container, attr=.attr, context, ...) {
+                             make_ui=function(., container, attr=.$attr, context, ...) {
                                attr$text=context$value
                                .$next_method("make_ui")(., container, attr, context, ...)
                              }
                              )
 
-#' Trait for embedding an image file
-#'
-#' @export
+##' Trait for embedding an image file
+##'
+##' @rdname Editor
 ImageEditor <- Editor$proto(class=c("ImageEditor", Editor$class),
                             editor_name="gimage")
 
 
-#' Trait for embedding graphics (RGtk2 only)
-#'
-#'
-#' @export
+##' Trait for embedding graphics (RGtk2 only)
+##'
+##'
+##' @rdname Editor
 GraphEditor <- Editor$proto(class=c("GraphEditor", Editor$class),
                             editor_name="ggraphics",
-                            make_ui=function(., container, attr=.attr, context, ...) {
-                              .$next_method("make_ui")(., container, attr, context, ...)
-                              g <- .$get_widget_by_name(.$view_widget_name)
-                              dev.no <- tag(g, "device") # used within fn. scope below
-
-                              ## get RGtk2 widget now
-                              ## This only works with RGtk2
-                              if(is.proto(g)) # gWidgetsWWW
-                                return()
-                              widget <- getToolkitWidget(g)
-                              if(!inherits(widget, "GtkDrawingArea"))
-                                return()
-                              
-                              require(RGtk2) # must be explicity loaded?
-                              ## we need to wait until the device is drawn here, otherwise we
-                              ## don't have a device number
-                              addHandler(g, "map-event", handler=function(h,...) {
-                                . <- h$action$editor
-                                .$dev_no <- tag(h$obj,"device")
-                              },
-                                         action=list(editor=.))
-                              ## handler for raising device when appropriate
-                              f <- function(., ...) {
-                                dev.no <- .$dev_no
-                                dev.set(dev.no)
-                                return(TRUE)
-                              }
-
-                              ## raise when click into window
-                              gSignalConnect(widget, "button-press-event", f=f, data=., user.data.first=TRUE)
-                              ## raise when motion over device
-                              widget$addEvents(GdkEventMask['enter-notify-mask'])
-                              gSignalConnect(widget, "enter-notify-event", f=f, data=., user.data.first=TRUE)
-                              ## close device when destroyed
-                              gSignalConnect(widget, "destroy-event", f=function(.,...) {
-                                dev.no <- .$dev_no
-                                dev.off(dev.no)
-                                return(TRUE)
-                              },
-                                             , data=., user.data.first=TRUE)
-
-                              invisible()
-                            },
                             set_value_in_view = function(.,...) {},
                             get_value_from_view= function(.,...) {}
                             )
 
-#' Trait for making File browser editor
-#' @export
+##' Trait for making File browser editor
+##'
+##' @rdname Editor
 FileBrowseEditor <- Editor$proto(class=c("FileBrowseEditor", Editor$class),
                                  editor_name="gfilebrowse")
 
-#' Trait for data selection editor
-#' @export
+##' Trait for data selection editor
+##'
+##' @rdname Editor
 DateEditor <- Editor$proto(class=c("DateEditor", Editor$class),
                                  editor_name="gcalendar")
 
 
-#' Trait for displaying a table of information 
-#'
-#' No selection, just display. For selection use ChoiceItem
-#' @export
+##' Trait for displaying a table of information 
+##'
+##' No selection, just display. For selection use ChoiceItem
+##'
+##' @rdname Editor
 TableEditor <- Editor$proto(class=c("TableEditor", Editor$class),
                             editor_name="gtable",
                             attr=list(expand=TRUE),
                             set_value_in_view=function(.,widget_name=.$view_widget_name, value) {
                               ## replace the widget -- so that size issues are there
-                              widget <- .$get_widget_by_name(widget_name)
-                              group <- .$get_widget_by_name(".cont")
-                              if(!is.null(group) && !is.null(widget)) {
-                                delete(group, widget)
-                                if(!(is.data.frame(value) || is.matrix(value)))
-                                  value <- as.data.frame(value)
-                                .$widgets[[.$view_widget_name]] <- gtable(value, cont=group, expand=TRUE)
+                              if(.$is_realized()) {
+                                widget <- .$get_widget_by_name(widget_name)
+                                group <- .$get_widget_by_name(".cont")
+                                if(!is.null(group) && !is.null(widget)) {
+                                  delete(group, widget)
+                                  if(!(is.data.frame(value) || is.matrix(value)))
+                                    value <- as.data.frame(value)
+                                  .$widgets[[widget_name]] <- gtable(value, cont=group, expand=TRUE)
+                                }
                               }
                             },
                             get_value_from_view=function(., ...) {},
@@ -517,23 +507,28 @@ TableEditor <- Editor$proto(class=c("TableEditor", Editor$class),
                               if(!is.data.frame(df))
                                 df <- data.frame(V1="", V2="")
                               .$widgets[[".cont"]] <- (g <- ggroup(cont=container, expand=TRUE))
-                              attr$items <- df; attr$cont <- g
+                              attr$items <- df
+                              attr$container <- g
+                              attr$expand=TRUE
                               .$widgets[[.$view_widget_name]] <- (widget <- do.call("gtable",attr))
+                              visible(widget) <- TRUE
                               if(!is.null(attr$size))
                                 size(g) <- attr$size
                             }
                             )
 
                               
-#' Trait for a label
-#' @export
+##' Trait for a label
+##' 
+##' @rdname Editor
 LabelEditor <- Editor$proto(class=c("LabelEditor",Editor$class),
                             editor_name="glabel"
                             )
 
 
-#' Trait for making a visual separator
-#' @export
+##' Trait for making a visual separator
+##'
+##' @rdname Editor
 SeparatorEditor <- Editor$proto(class=c("SeparatorEditor",Editor$class),
                                 editor_name="gseparator",
                                 attr=list(expand=TRUE),

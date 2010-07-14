@@ -79,8 +79,9 @@ View <- BaseTrait$proto(class=c("View", BaseTrait$class),
                         set_value_in_view = function(., widget_name, value) {
                           if(.$is_realized()) {
                             widget <- .$get_widget_by_name(widget_name)
+                            index <- get_with_default(.$get_slot("by_index"), FALSE)
                             blockHandler(widget)
-                            try(svalue(widget) <- value, silent=TRUE)
+                            try(svalue(widget, index=index) <- value, silent=TRUE)
                             unblockHandler(widget)
                           }
                         },

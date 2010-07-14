@@ -4,8 +4,10 @@
 \usage{variableSelectorItem(value=NA, multiple=FALSE, dataframeItem, name,
     label=name, help="", tooltip="", attr, model, editor, ...)}
 \description{Item to select a variable (or variables) from a selected data frame}
-\details{This widget checks every second or so for new data frames and updates selection accordingly}
+\details{Needs to have a dataframeItem specified to be useful.}
+\seealso{\code{\link{dataframeItem}}}
 \value{A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.}
+\seealso{\code{\link{Item}}}
 \arguments{\item{value}{Default data frame for the model, defaults to .GlobalEnv}
 \item{multiple}{Allow multiple selection?}
 \item{dataframeItem}{A required dataframeItem instance. This need not be in same display, or even displayed}
@@ -17,3 +19,10 @@
 \item{model}{Optional model. Useful if one wishes to use same model for multiple views}
 \item{editor}{Specification of editor (a view) to override default}
 \item{...}{Passed to parent proto object during call to proto}}
+\examples{df <- data.frame(a=1:3, b= letters[1:3], c=rnorm(3)) # make a data frame
+dfI <- dataframeItem(value="df", name="dfI")
+dlg <- aDialog(items=list(
+dfI,                      ## a bit awkward -- can't define dfI in list of items
+variable=variableSelectorItem(dataframeItem=dfI))
+)
+\dontrun{ dlg$make_gui() }}

@@ -2,10 +2,11 @@
 \alias{tableItem}
 \title{List editor -- list <-> tree, must have special structure to list?}
 \usage{tableItem(value=data.frame(V1 = "", V2 = ""), name, label=name,
-    help="", tooltip="", attr=list(), model, editor, ...)}
+    help="", tooltip="", attr=list(expand = TRUE), model, editor, ...)}
 \description{List editor -- list <-> tree, must have special structure to list?
 An item to display a table of data (given as a matrix or data.frame)}
 \value{A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.}
+\seealso{\code{\link{Item}}}
 \arguments{\item{value}{Default value of data frame}
 \item{name}{Required name for object. Names should be unique within a group of items}
 \item{label}{ignored}

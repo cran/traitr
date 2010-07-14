@@ -4,7 +4,7 @@
 \usage{rangeItem(value="", from=0, to=10, by=1, name, label=name, help="",
     tooltip="", attr, model, editor, ...)}
 \description{A range selection item}
-\details{Editor is a slider (with spinbutton when \code{by} value is an integer.}
+\details{Editor is a slider (with spinbutton when \code{by} value is an integer).}
 \value{A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.}
 \arguments{\item{value}{Default data frame for the model}
 \item{from}{Starting value of range}
@@ -18,3 +18,7 @@
 \item{model}{Optional model. Useful if one wishes to use same model for multiple views}
 \item{editor}{Specification of editor (a view) to override default}
 \item{...}{Passed to Item trait}}
+\examples{i <- rangeItem(value=5, from=0, to=10, by=1, name="rng")
+i$get_rng()
+i$set_rng(10)
+i$get_rng()}

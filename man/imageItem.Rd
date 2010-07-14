@@ -5,7 +5,8 @@
     model, editor, ...)}
 \description{Display an image specified by its filename.}
 \value{A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.}
-\arguments{\item{value}{ingored}
+\seealso{\code{\link{Item}}}
+\arguments{\item{value}{name of file}
 \item{name}{Required name for object. Names should be unique within a group of items}
 \item{label}{ignored}
 \item{help}{Optional help string}
@@ -14,3 +15,6 @@
 \item{model}{ignored}
 \item{editor}{ignored}
 \item{...}{Passed to parent proto object during call to proto}}
+\examples{img <- system.file("images/plot.gif", package="gWidgets")   ## some image
+i <- imageItem(img)                                         ## constructor
+\dontrun{i$make_ui(container=gwindow("Image"))}                       ## show item directly}

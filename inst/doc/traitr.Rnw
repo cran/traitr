@@ -183,15 +183,15 @@ options(width=80)
   provides an interface to GUI design within R in the spirit of the
   \code{Traits UI} python module. The basic idea
   is that the user specifies the type of data that is desired, and the
-  package provides a reasonable GUI to edit that data.
+  package gives a reasonable GUI to edit that data.
  \end{abstract}
  
 \section{Five-minute, or so, introduction}
 \label{sec:five-minute-intr}
 
-The \pkg{traitr} package is provided to provide a natural, relatively
-easy means to produce GUIs for functions. The design was inspired by
-the \code{Traits UI} python modele
+The \pkg{traitr} package is intended to provide a natural, relatively
+easy means to produce GUIs for underlying functions. The design was inspired by
+the \code{Traits UI} python module
 (\url{http://code.enthought.com/projects/traits}), although the
 implementation is not nearly as feature rich as that.
 
@@ -206,31 +206,41 @@ together by specifying some common methods (a controller).
 
 This provides a simple map between a function with arguments
 (whose values are of a certain type) and a GUI to edit these values,
-which makes the writing  basic GUI dialogs for R functions very
+which makes the writing of basic GUI dialogs for R functions very
 straightforward -- no GUI
 programming is needed.~\footnote{This vignette documents
-  version 0.4 of the package. At this point, the interface is
-  experimental and subject to change.}
+  version 0.9 of the package.}
 
 The \pkg{traitr} package uses \pkg{gWidgets} to provide a link to a
-graphical toolkit. We've only used \pkg{RGtk2} in developing this
-package, \pkg{tcltk} was slower
-and doesn't have the graphics device. This package
-must be installed separately and may involve installing a toolkit.
+graphical toolkit. At this point it works with \pkg{gWidgetsRGtk2} and
+\pkg{gWidgetsQt}, but there are issues with \pkg{gWidgetstcltk}.
 
-There are a few means available now to have GUIs automatically written
+There are a few means available now within \R{} to have GUIs automatically written
 for you such as \pkg{fgui} and the \pkg{ggenericwidget} function in
 \pkg{gwidgets}. The basic idea employed is an inspection of a function's arguments to
-determine their type and provide the appropriate widget for that
-type. This package does not attempt to do this, rather the user
-specifies the type for the arguments. The basic unit in \pkg{traitr}
-is an item, which is an object that knows what type of value it should
-hold and how to represent that value in a GUI. Since the programmer
-knows the type of value they want, this isn't difficult to provide,
-yet the GUI creation aspect is mostly hidden from sight.  At this
-point, there are a few basic type of items listed in
+determine the type of data expected and the a determination of the
+appropriate widget for editing that
+type. This package provides \constructor{dialogMaker} to do so, but
+also make it easy for the user to just
+specify the data type for the arguments to make a GUI. 
+
+The basic unit in \pkg{traitr} is an item, which is an object that
+knows what type of value it should hold and how to represent that
+value in a GUI. Since the programmer knows the type of value they
+want, this isn't difficult to provide, yet the GUI creation aspect is
+mostly hidden from sight -- unless the programmer wishes to change the
+defaults. The GUI for an item is referred to as an editor, as in most
+cases, the primary usage is to display the underlying value for
+editing.
+
+
+At this point, there are a few basic type of items listed in
 Table~\ref{tab:item-constructors}. Adding more is on the TODO list.
 \\
+
+\subsection{A first example}
+\label{sec:first-example}
+
 
 To begin with \pkg{traitr}, we load the package and specify a
 \pkg{gWidgets} implementation. 
@@ -242,8 +252,12 @@ options(guiToolkit="RGtk2")
 @ 
 
 An item constructor is called with a default value and possibly many
-other values. To see how a simple GUI can be made, here we construct a
-GUI to collect a number and string:
+other values. Items may be combined into ``item groups'' or
+``dialogs,'' the latter being an item group with a window and a set of
+buttons. 
+
+To see how a simple GUI can be made, here we construct a GUI to
+collect a number and string:
 <<>>=  
 dlg <- aDialog(items=list(
                  number=numericItem(0),
@@ -278,7 +292,7 @@ methods and properties of the \pkg{proto} objects produced, call their
   needed.} That is, this command will produce a web page with the
 information for the \code{dlg} instance: \code{dlg\$show\_help()}.
 
-The default GUI has three buttons, an OK button (which when clicked
+The default dialog GUI has three buttons, an OK button (which when clicked
 prints out the values in the GUI), a Cancel button to dismiss the
 dialog and a Help button to call up a simple help string, which in
 this example is not implemented. To change the buttons, one assigns
@@ -300,7 +314,7 @@ dlg <- aDialog(items=list(
                OK_handler=function(.) { # . is reference to dlg object
                  values <- .$to_R()
                  f <- function(number,string) 
-                   cat("number is",number, "string is",string,"\n")
+                   cat("number is", number, "string is", string, "\n")
                  do.call(f, values)
                }
                )
@@ -313,8 +327,15 @@ object, so its lone argument \object{.} passes into the function body the
 by copy is not used, rather this is the same object.) Its method \meth{to\_R} returns a named list of
 the values stored for each item in the dialog -- which is convenient
 for \code{do.call} --  and this handler simply
-echoes them back in a friendly manner.
-
+echoes them back in a friendly manner. Individual properties in the
+dialog can be accessed through ``getters.'' These follow the naming
+convention \code{get\_PROPERTYNAME}, as in
+<<>>=
+dlg$get_number()
+@ 
+(The \code{number} is the name assigned to the item. In this case --
+since it is not specified in an argument -- it
+gets it from the named component of the list where the item is defined.)
 
 To make a less trivial dialog we just need to have more complicated
 functions. What follows is a dialog~(Figure~\ref{fig:t-test-1}) for computing a $t$-test when the
@@ -333,15 +354,15 @@ basic.t.test <- function(mean, mu, sd, alternative=c("two.sided","less","greater
 }
 @ 
 Our dialog setup is similar, but we have more variables that need
-their type specified.
+their type specified:
 <<>>=
 dlg <- aDialog(items=list(
-                 mean = numericItem(0),
-                 sd = numericItem(1),
-                 n = numericItem(5),
-                 mu = numericItem(0),
+                 mean=numericItem(0),
+                 sd=numericItem(1),
+                 n=numericItem(5),
+                 mu=numericItem(0),
                  alternative=choiceItem("two.sided", values=c("two.sided","less","greater")),
-                 output = stringItem("", label="p.value")
+                 output=stringItem("", label="p.value")
                  ),
                title="A basic t-test interface",
                help_string="Enter in summarized values then click OK to get the p-value",
@@ -576,10 +597,12 @@ dlg$make_gui()
 
 The dialog is a model that observes itself for changes. When such a
 change occurs, methods matching a certain naming convention are
-called. The \code{model\_value\_changed} is always called.
+called. The \code{model\_value\_changed} method, if present, is always
+called when any property is changed.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Items
+
 \section{Items}
 \label{sec:items}
 The basic object in \pkg{traitr} is an item. An item includes a model
@@ -635,7 +658,7 @@ cat(booktabs(df,
              label="tab:item-constructors"))
 @ 
 
-The \constructor{choiceItem} provides a means to choice a value for a
+The \constructor{choiceItem} provides a means to choose a value for a
 specified list of values. The editor may use a radio button group, a
 checkbox group, a combobox or a table widget to present the choice
 depending on the size of the list of values and whether multiple
@@ -663,6 +686,17 @@ dlg$make_gui()
 
 The \constructor{itemList} constructor is used to create a list of items or item
 groups. See~\ref{sec:codeitemlist-item} for examples.
+
+
+% http://yuml.me/diagram/scruffy/class/[Model] -> [Item|get/set_editor;visible_when;enabled_when; validate; get/set_model| show_label; tooltip]
+
+\begin{figure}
+  \centering
+  \includegraphics[width=.5\textwidth]{uml-items}
+  \caption{Standard methods and properties for an Item. (All
+      UML diagrams come from \texttt{http://yuml.me/})}
+  \label{fig:uml-items}
+\end{figure}
 
 \subsection{Item groups}
 \label{sec:item-groups}
@@ -714,7 +748,16 @@ multiple views. This may not be desirable. If two independent
 realizations are desired, then creating a factory (a function) to
 produce new instances of \code{hyps} would be suggested.
 
+% http://yuml.me/diagram/scruffy/class/[Model] ->
+% [ItemGroup|get_items;get_item_by_name;to_R;to_string;make_gui;
+% visible; enabled; get/set_model;instance;update_ui|items]
 
+\begin{figure}
+  \centering
+  \includegraphics[]{uml-itemgroup}
+  \caption{Standard methods and properties for an item group.}
+  \label{fig:uml-itemgroup}
+\end{figure}
   
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -795,7 +838,7 @@ i$set_values(letters)                   # to set values
 \label{sec:observers-1}
 
 Models implement the observer pattern. An observer is notified
-whenever a model property changes and if the model changes. To do so,
+whenever a specific model property changes or if any of the model's properties changes. To do so,
 the observer (which is a model instance like an item, item group, or
 dialog; or a controller) would have methods
 \meth{model\_value\_changed} which is called whenever any property is
@@ -805,7 +848,7 @@ a given property is changed.
 To add an observer to a model, the \meth{add\_observer} method is
 used, whereas \meth{remove\_observer} is provided to remove the observer.
 This example defines two dialogs, the second with a suitably named
-method and then has the second observe changes in the first.
+method and then has the second observer change in the first.
 <<>>=
 dlg <- aDialog(items=list(
                  x=numericItem(0),
@@ -871,6 +914,17 @@ GUIs, allowing multiple views for the same model.
 
 
 
+%% http://yuml.me/diagram/scruffy/class/[Model|get/set_PROPERTYNAME;add/remove_observer;
+%% notify_observers;getattr; setattr|PROPERTIES ]
+
+\begin{figure}
+  \centering
+  \includegraphics[]{uml-model}
+  \caption{Standard methods and properties for a model.}
+  \label{fig:uml-model}
+\end{figure}
+
+
 
 \section{Dialogs}
 \label{sec:dialogs}
@@ -878,7 +932,7 @@ GUIs, allowing multiple views for the same model.
 Dialogs and item groups combine several items into a model, with different
 properties. In addition to the getter/setter methods, there is the
 useful \meth{get\_item\_by\_name} to retrieve a given item, and
-\meth{to\_R} to get the values as a named list.
+\meth{to\_R} method to get the values as a named list.
 
 A dialog is an item group which creates its own top-level window. As
 such, dialogs have options for decorating the window: e.g., to add
@@ -889,6 +943,7 @@ done through the argument \args{title} and \args{help\_string}.
 The top-level container is constructed by a call to the
 \meth{make\_gui} method. To close the GUI programmatically, the
 \meth{close\_gui} method is available.
+
 
 \subsection{Menubars, toolbars, statusbars}
 \label{sec:menub-toolb-stat}
@@ -945,11 +1000,51 @@ dlg$make_gui()
 @ 
 
 If a button name has spaces or other non-alpha characters, they are
-stripped before calling the handler. For example,  a button labeled "click me"
-would call the handler \meth{clickme\_handler}.
+stripped before calling the handler. For example,  a button labeled "Click me"
+would call the handler \meth{Clickme\_handler}.
 
 The special button name ``SPACE'' will insert a 10 pixel space. The
 special button name ``SPRING'' will insert a ``spring'' between the buttons.
+
+\subsection{Scope}
+\label{sec:scope}
+
+The underlying \code{proto} package treats methods differently than
+may be expected. In particular, sometimes lookup for a variable
+happens in a different place than expected. For example:
+
+<<>>=
+fun <- function() {
+  a <- 1
+  dlg <- aDialog(items=list(),
+                 a=2,
+                 meth1=function(.) a)
+  dlg$meth2 <- function(.) a
+  dlg[['meth3']] <- function(.) a
+  c("1"=dlg$meth1(), "2"=dlg$meth2(), "3"=dlg$meth3())
+}
+fun()
+@ 
+In \code{meth1} and \code{meth2} the environment of passed in methods is the lexical
+environment, so the unbound variable \code{a} is found from the
+enclosing envrionment of \code{fun}, whereas in \code{meth2} the
+environment is that of the \pkg{proto} object \code{dlg}, which has
+the value of \code{2} defined for \code{a}. the moral here, is you
+likely want to use \verb+[[<-+ for assignment of new methods if
+done after the time of construction.
+
+% http://yuml.me/diagram/scruffy/class/[ItemGroup] -> [Dialog|
+% BUTTONNAME_handler; make_gui; set_status_text; visible; update_ui; close_gui   | title;
+% help_string; status_text; menu_list; toolbar_list; buttons;
+% default_button]
+
+\begin{figure}
+  \centering
+  \includegraphics[]{uml-dialog}
+  \caption{Standard methods and properties for a dialog.}
+  \label{fig:uml-dialog}
+\end{figure}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% Views
@@ -967,7 +1062,7 @@ another item group.
 \subsection{Types of views}
 \label{sec:types-views}
 
-The various view are described by their man pages. They are very
+The various views are described by their man pages. They are very
 similar to the \pkg{gWidgets} containers except for that provided by
 the \constructor{aContext} constructor. This view does not place its items in a
 container, but rather provides a means to specify a context. This is
@@ -1018,6 +1113,38 @@ editor.
 
 To define a new item, one must also provide an editor or use one of
 the existing ones. 
+
+
+
+
+% http://yuml.me/diagram/scruffy/class/
+% [View|
+% get_widget_by_name; get_widgets; make_ui;is_realized; enabled; visible
+% | attr; 
+% ]
+
+\begin{figure}
+  \centering
+  \includegraphics[width=.5\textwidth]{uml-view}
+  \caption{Standard methods and properties for a view.}
+  \label{fig:uml-view}
+\end{figure}
+
+% http://yuml.me/diagram/scruffy/class/
+% [View] ->
+% [Editor 
+% |make_ui; visible; enabled; instance; set_valid; set_invalid
+% |editor_style;attr;
+% ]
+
+\begin{figure}
+  \centering
+  \includegraphics[]{uml-editor}
+  \caption{Standard methods and properties for an editor.}
+  \label{fig:uml-editor}
+\end{figure}
+
+
 \subsection{Integration with \pkg{gWidgets}}
 \label{sec:integr-with-pkggw}
 
@@ -1147,6 +1274,7 @@ density plot for us, in a manner similar to that of the demo.
     }
     do.call(f,l)
   }
+
 @ 
 Here we define the items and the dialog properties. There are 5 main
 items, including the graphic device. The labels are suppressed, as we
@@ -1175,14 +1303,14 @@ graphic device on the right. We use only the 'Cancel' button to match,
 somewhat, the demo.
 <<>>=
 view <- aGroup(aContainer(aFrame("dist", label="Distribution"),
-                            aFrame("kernel", label="Kernel"),
-                            aFrame("n", label="Sample size"),
-                            aFrame("bw", label="Bandwidth")
-                            ),
-                 "out",
-                 horizontal=TRUE)
-  dlg$make_gui(gui_layout=view)
-  replot(dlg)                           # initial plot
+                          aFrame("kernel", label="Kernel"),
+                          aFrame("n", label="Sample size"),
+                          aFrame("bw", label="Bandwidth")
+                          ),
+               "out",
+               horizontal=TRUE)
+dlg$make_gui(gui_layout=view)
+replot(dlg)                           # initial plot
 @ 
 
 \subsection{The \code{itemList} item}
@@ -1563,7 +1691,227 @@ view2 <- aContainer("b", context=model)
 dlg1$make_gui(gui_layout=view1)
 @ 
                  
+\subsection{A "spotfire" like demo}
+\label{sec:spotfire-like-demo}
 
+\begin{figure}
+  \centering
+  \includegraphics[width=0.6\textwidth]{spotfire}
+  \caption{A GUI designed around the graphical summary of a data frame with controls to narrow the values displayed. }
+  \label{fig:spotfire}
+\end{figure}
+
+
+The purveyor of S-Plus has a product to create interactive web pages
+from within S-Plus. See \url{http://spotfire.tibco.com} for
+details. The examples shown are of a similar type. A GUI is
+constructed around a specific data set and has some graphic to
+summarize the data and some filter controls to filter the display of
+the data. Additionally, there is some interactivity between the
+graphic and the data table. The latter we don't illustrate below, but
+we do illustrate how to use \pkg{traitr} to make a similar type of
+GUI. 
+
+This example will also demonstrate how one can create components with
+\pkg{traitr} to be used within other parts of a GUI.
+
+The Spotfire demos all have a description page. Here illustrate how
+PANGO markup can be used with a label item to provide some markup for
+the instructions.
+<<SpotfireExample>>=
+theDesc <- paste("<b>Spotfire</b>",
+                 "The Spotfire web player (http://spotfire.tibco.com)",
+                 "has several demos built around a somewhat similar set-up:",
+                 "a description page, a data set, a graphic display of the data, and a set",
+                 "of controls to filter out the data that is being displayed in the graphic.",
+                 "",
+                 "This example shows how <b>traitr</b> can be used to make a simple version of such.",
+                 "",
+                 "Click the <i>Explore</i> tab to begin.",
+                 sep="\n")
+@ 
+The data set we will use here is the standy \code{mtcars} one. This
+would be customized to the GUI in question. Our table display will
+also include a label to display the number of selected cases (rows)
+after filtering has occurred.
+<<dataDisplay>>=
+theData <- mtcars
+makeLabel <- function(nr) sprintf("<b>%s</b> cases",nr)
+dataDisplay <- anItemGroup(items=list(
+                             data = tableItem(theData, name="data", attr=c(expand=TRUE)),
+                             label = labelItem(makeLabel(nrow(theData)), attr=c(markup=TRUE, expand=FALSE))
+                             ),
+                           attr=c(expand=TRUE)
+                           )
+@ 
+We define this handler to synchronize the label with the size of the
+data being displayed.
+<<>>=
+## synchronize labe with data dimension
+dataDisplay$property_data_value_changed <- function(., value, old_value)
+  .$set_label(makeLabel(nrow(.$get_data())))
+@ 
+
+We wish to specify the layout for the data table here, rather than in
+a monolithic specification when the entire GUI is constructed. By
+doing so, we could reuse this in other GUIs without much fuss. To do
+so, we redefine the method to define the default layout.
+<<>>=
+dataDisplay$make_default_gui_layout <- function(.) {
+  aGroup("data",
+         aGroup(labelItem("", attr=c(expand=TRUE)),"label", horizontal=TRUE),
+         horizontal=FALSE)
+}
+@ 
+
+
+Our filter controls are chosen to illustrate how we could use a slider
+or a checkbox to narrow the number of cases displayed.  
+
+We begin with a filter to narrow down by levels of a variable. The
+\code{get\_selected} method returns a logical vector of the cases that
+are selected.  For this, we also specify a default layout. Together,
+this creates a component that can easily be incorporated into another
+item group.
+<<filterBy>>=
+var <- "cyl"
+varLevels <- sort(unique(theData[, var]))
+cylFilter <- anItemGroup(name=var,
+                         items=list(
+                           choice=choiceItem(varLevels, varLevels,
+                             by_index=FALSE, multiple=TRUE, show_label=FALSE)
+                           ),
+                         data=theData[, var],
+                         get_selected = function(.) {
+                           choice <- .$get_item_by_name("choice")
+                           value <- choice$get_choice()
+                           values <- choice$get_values()
+                           vals <- values[values %in% value]
+                           .$data %in% vals
+                         },
+                         make_default_gui_layout=function(.) {
+                           aFrame("choice", label="Cylinders")
+                        })
+@ 
+
+This shows a filter for a numeric variable.
+<<>>=
+var1 <- "wt"
+rng <- range(theData[, var1])
+wtFilter <- anItemGroup(name=var1,
+                        items=list(
+                          weight=rangeItem(value=rng[1] - .2, from=rng[1], to=rng[2], by=.2,
+                            show_label=FALSE, label="Weight >")
+                          ),
+                        data=theData[,var1],
+                        get_selected=function(.) {
+                          .$data >= .$to_R()$weight
+                        },
+                        make_default_gui_layout=function(.) {
+                          aFrame("weight", label="Weight > ")
+                        }
+                        )
+@ 
+
+Our \code{filters} item group will hold the two. Here we specify the
+layout using a frame.
+<<>>=
+filters <- anItemGroup(items=list(cylFilter, wtFilter))
+filters$make_default_gui_layout <- function(.) {
+  aFrame(var,
+         var1,
+         label="Filter by",
+         attr=c(size=c(300,-1)))
+}
+@ 
+
+Our main method is called when a filter value is changed. It computes
+the indices of the cases that are still valid. This task is made
+simpler by defining the \code{get\_selected} methods, as these return
+the logical values we wish. 
+
+<<>>=
+filters$model_value_changed <- function(.) {
+  items <- .$get_items()
+  ind <- as.logical(items[[1]]$get_selected() * items[[2]]$get_selected())
+  dlg$update_data(ind)
+}
+@ 
+
+
+
+With the pieces above, creating the main GUI is now
+straightforward. The items are four in number: the label, the data,
+the graphic device and the filter area.
+<<>>=
+dlg <- aDialog(items=list(
+                 Description=labelItem(theDesc, attr=c(markup=TRUE)),
+                 gd = graphicDeviceItem(),
+                 filters,
+                 dataDisplay
+                 ),
+               title="Spotfire example",
+               buttons="Cancel"
+               )
+@ 
+When the data is changed, we want the graphic to be updated.
+<<specifyDialog>>=
+dlg$property_data_value_changed <- function(., value, old_value) 
+  .$draw_graphic()
+@ 
+This method was referred to above in the method calls for
+filtering. The filter updates the data, and then the above method is
+called to update the graphic.
+<<>>=
+dlg$update_data <- function(., index) {
+  if(missing(index))
+    data <- theData
+  else
+    data <- theData[index,]
+  dataDisplay$set_data(data)
+}
+@ 
+
+Finally, we make the drawing of the graphic a separate method, so we
+can call it without having to update the data set. We don't work very
+hard in the graphical summary of data.
+<<>>=
+dlg$draw_graphic <- function(.) {
+  data <- dataDisplay$get_data()
+  if(nrow(data)) {
+    hist(data[,"mpg"])
+    rug(data[, "mpg"])
+  } else {
+    plot.new()
+  }
+}
+@ 
+
+Finally, we use paned groups to layout our GUI, allowing the user to
+give more area to the data table if desired.
+
+<<>>=
+## Layout for main GUI
+lyt <- aNotebook(aNotebookPage("Description",
+                               label="About"
+                               ),
+                 aNotebookPage(aPanedGroup(
+                                           aPanedGroup("gd",
+                                                       dataDisplay,
+                                                       horizontal=FALSE),
+                                           filters),
+                               label="Explore"
+                               )
+                 )
+@ 
+
+Since the GUI takes a few seconds to load, we first call the
+\code{loadingAnimation} window to give the user some feedback.
+<<makeGUI>>=
+w <- loadingAnimation()
+dlg$make_gui(gui_layout=lyt)
+w$close()
+@ 
 \end{document}
 
 

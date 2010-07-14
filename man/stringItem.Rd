@@ -5,6 +5,7 @@
     eval_first=FALSE, attr, model, editor, ...)}
 \description{A string item}
 \value{A \code{proto} object. Call \code{obj\$show_help()} to view its methods and properties.}
+\seealso{\code{\link{Item}}}
 \arguments{\item{value}{Default value for the model}
 \item{regex}{If non \code{NULL} specifies a regular expression for validation.}
 \item{name}{Required name for object. Names should be unique within a group of items}

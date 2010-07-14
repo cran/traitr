@@ -1,4 +1,16 @@
 ## future releases:
+DONE * tableItem with set_value -- editor doesn't listen to itself?
+* addSpring -- to space between children
+* don't like how I can't adjust expand property for children of aGroup
+  container
+* emphasize how we can program in components (itemGroup nesting, where
+  each itemGroup can take care of itself (callbacks, view, ...) yet
+  interface with the other components (callbacks, view, ...)
+* how to have to_R do nested if itemgroups have itemgroups?
+* does there exists a get_item_by_name for itemgroup? (itemgroup of
+  itemgroups, ....) -- return all that match pattern or exact
+* spitfire example desc/data/filter/graph/table with layout
+
 * make_gui -- pass in attr so that gwindow can have size set, ...
 * Tom T. has code to simplify basic usage
 * Need to profile code as the responsiveness isn't where it should be

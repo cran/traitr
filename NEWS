@@ -2,6 +2,32 @@ Dear Emacs, please make this -*-Text-*- mode!
 
 NEWS for traitr
 
+
+Changes for 0.9:
+----------------
+* added new function dialogMaker to create dialogs from functions. 
+* bug fixes to validation; new method is_valid to see if validate
+  throws an error.
+* bug fixes for buttonItem (thanks to J Hallman for pointing out issues)
+* improvements in documentation
+* fix issue with scope and dialogs so that user defined methods have
+lexical scope when passing into aDialog.
+
+Changes for 0.8:
+----------------
+ 
+* additional argument to to_R, to_string
+
+* new constructor loadingAnimation to display while a long GUI is
+  being drawn
+
+* fixes to how GUI is drawn to make pieces more modular
+
+* new example in vignette
+
+* Can now pass in attributes via attr to the container
+  constructors. These are passed to the gwidgets constructor
+
 Changes for 0.7:
 ----------------
 

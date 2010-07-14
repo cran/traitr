@@ -14,15 +14,15 @@
 ##  http://www.r-project.org/Licenses/
 
 
-#' @include helpers.R
+##' @include helpers.R
 roxygen()
 ## to quiet down some errors and notes in R CMD check:
 require(proto)
 assign(".super", NULL)
 
-
-#' Base Trait to place common properties and methods
-#' @export
+##' Base Trait to place common properties and methods
+##'
+##' @export
 BaseTrait <- proto(
                     ## we add a class to our objects to mimic class behavior (not dispatch though)
                     .doc_class=paste(
@@ -100,7 +100,8 @@ BaseTrait <- proto(
                      param("inherits","Look into ancestry?")
                    ),
                    has_slot=function(., key) {
-                     exists(as.character(key), envir=.)
+                     key <- as.character(key)
+                     exists(key, envir=.) && !is.null(get(key, envir=.))
                    },
                    .doc_has_local_slot=paste(
                      desc("Same as has_slot, only looks only in present object, not ancestors")
@@ -229,8 +230,8 @@ BaseTrait <- proto(
                       ),
                     do_call = function(., fun, lst=list()) {
                       fun <- as.character(fun)
-                      if(.$has_slot(fun) && is.function(FUN <- .$get_slot(fun))) {
-                        do.call(FUN, c(., lst))
+                      if(.$has_slot(fun) && is.function(.$get_slot(fun))) {
+                        do.call(.$get_slot(fun), c(., lst))
                       }
                     },
                     ## doc stuff

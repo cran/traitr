@@ -33,19 +33,19 @@ roxygen()
 #' @param editor optional editor to pass in
 #' @param ... passed along to \code{Item\$proto()} call
 #' @note  This item's model is a a list storing child items or item groups.
-#'        To create new items, the \code{item\_factory} method should be provided. It provides a
+#'        To create new items, the \code{item_factory} method should be provided. It provides a
 #'        template for a new item, the editor allows the user to modify its values
-#'        When a child item is edited the "done" button is clicked to close. The method \code{post\_process}
+#'        When a child item is edited the "done" button is clicked to close. The method \code{post_process}
 #'        is called. (The edited changes may already have been sent back to the model.)
-#'        The child items \code{to\_string} method is called to make the label in the table that allows
+#'        The child items \code{to_string} method is called to make the label in the table that allows
 #'        the user to select the child item to edit. This should be a character vector of length 1.
 #'        The table can display an icon. Simply set the \code{icon} property of the icon to a \pkg{gWidgets}
 #'        stock icon name.
 #'
-#'        The child items can be returned via the \code{get\_value} method or the \code{get\_NAME} method, where
+#'        The child items can be returned via the \code{get_value} method or the \code{get_NAME} method, where
 #'        \code{NAME} is that passed into the \code{name} argument of the constructor.
-#'        The \code{to\_R} method can be modified to manipulate the return value. The vignette has an example
-#'        where the output is coerced into a data frame. The default is a list with each child items \code{to\_R}
+#'        The \code{to_R} method can be modified to manipulate the return value. The vignette has an example
+#'        where the output is coerced into a data frame. The default is a list with each child items \code{to_R}
 #'        method called to form the numbered components.
 #'          
 #' @return A \code{proto} object. Call \code{obj\$show_help()} to view its methods and properties.
@@ -66,7 +66,7 @@ roxygen()
 #'                    a$post_process <- function(.) {
 #'                     .$icon <- tolower(.$get_rank())
 #'                     }
-#'                    a$to_string <- function(.) .$to_R()$name
+#'                    a$to_string <- function(., drop=TRUE) .$to_R()$name
 #'                    return(a)
 #'                  },
 #'                  name="itemlist")
@@ -111,6 +111,7 @@ itemList <- function(items=list(),
   obj$append_item <- function(., value) {
     values <- .$get_value()
     values <- c(values, value)
+    ## we don't set the value, we set the name?
     .$set_value(values)
     ## listen to changes in values
     value$add_observer(.)
@@ -147,8 +148,8 @@ itemList <- function(items=list(),
   obj$.doc_to_R=paste(
     desc("Return R object representing state of object. Returns list of same method call on each object.")
     )
-  obj$to_R <- function(.) {
-    l <- sapply(.$get_value(), function(i) i$to_R())
+  obj$to_R <- function(., drop=TRUE) {
+    l <- sapply(.$get_value(), function(i) i$to_R(drop=drop))
     l <- list(l)
     names(l) <- .$name
     l
@@ -156,8 +157,8 @@ itemList <- function(items=list(),
   obj$.doc_to_string=paste(
     desc("String representation of object")
     )
-  obj$to_string <- function(.) {
-    paste(sapply(.$get_value(), function(i) i$to_string()), collapse=" ")
+  obj$to_string <- function(., drop=TRUE) {
+    paste(sapply(.$get_value(), function(i) i$to_string(drop=drop)), collapse=" ")
   }
 
   ## setup and go
@@ -174,8 +175,15 @@ itemList <- function(items=list(),
   obj$init_model <- function(.) {
     .$next_method("init_model")(.)
     ## map name -> value
-    .$set_slot(sprintf("get_%s",.$name), .$get_slot("get_value"))
-    .$set_slot(sprintf("set_%s",.$name), .$get_slot("set_value"))
+    .$get_value <- function(.) .$do_call(sprintf("get_%s",.$name))
+    .$set_value <- function(., value) .$do_call(sprintf("set_%s", .$name), list(value))
+    ## do same for model
+    m <- .$get_model()
+    m$..name <- .$name
+    m$get_value <- function(.) .$do_call(sprintf("get_%s", .$..name))
+    m$set_value <- function(., value) .$do_call(sprintf("set_%s", .$..name), list(value))
+#    .$set_slot(sprintf("get_%s",.$name), .$get_slot("get_value"))
+#    .$set_slot(sprintf("set_%s",.$name), .$get_slot("set_value"))
     ## observe self
     .$add_observer(.)
   }
@@ -297,6 +305,7 @@ ItemListEditor <- Editor$proto(class=c("ItemListEditor", Editor$class),
                                  widgets <- list()
                                  attr <- merge(list(container=container, expand=TRUE), attr)
                                  widgets[['box']] <- do.call("gpanedgroup", attr)
+
                                  lgroup <- ggroup(horizontal=FALSE, cont=widgets[['box']])
                                  widgets[['edit_area']] <- ggroup(horizontal=FALSE, cont=widgets[['box']])
                                  widgets[['edit_area_child']] <- glabel("", cont=widgets[['edit_area']])
@@ -340,15 +349,19 @@ ItemListEditor <- Editor$proto(class=c("ItemListEditor", Editor$class),
                                update_ui = function(., context) {
                                  if(!context$editor$is_realized())
                                    return()
-                                 items <- context$get_model()$get_value()
+###                                 items <- context$get_model()$get_value()
+                                 items <- context$get_value()
                                  df <- .$get_table_entries(items)
                                  if(length(items) && nrow(df)) {
                                    .$widgets[['item_table']][] <- df
                                    ## do icons with hack using RGtk2 backend -- ugly
-                                   require(RGtk2)
-                                   frame <- getToolkitWidget(.$widgets[['item_table']])$getModel()
-                                   icons <- gWidgetsRGtk2:::getstockiconname(sapply(items, function(i) i$icon))
-                                   frame[,2] <- icons
+                                   frame <- getToolkitWidget(.$widgets[['item_table']])
+                                   if(inherits(frame, "RGtkObject")) {
+                                     require(RGtk2)
+                                     frame <- frame$getModel()                                   
+                                     icons <- gWidgetsRGtk2:::getstockiconname(sapply(items, function(i) i$icon))
+                                     frame[,2] <- icons
+                                   }
                                  } else {
                                    ## clear out
                                    .$widgets[['item_table']][] <- character(0)

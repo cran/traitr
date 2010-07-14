@@ -7,9 +7,11 @@
     "gcheckboxgroup"), ...)}
 \description{Item for choosing one of several values}
 \value{A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.}
+\seealso{\code{\link{Item}}}
 \arguments{\item{value}{Default value for the model. This is specified by index (or indices if \code{multiple=TRUE})}
 \item{values}{Values that one can select from. May be a data frame or vector. The editor depends on the size of
-this: small will be radio button or checkboxes; medium is combobox; large is table}
+this: small will be radio button or checkboxes; medium is combobox; large is a table. One can
+override the behaviour by passing in a value to \code{editor_type}.}
 \item{by_index}{Do we get and set the main value by index or by value?}
 \item{multiple}{Multiple selection is allowed? If so, then only checkboxes or table widget is used}
 \item{editable}{Can user edit value to be selected? If so, the combobox is used}
@@ -21,7 +23,8 @@ this: small will be radio button or checkboxes; medium is combobox; large is tab
 The \code{expand=TRUE} value is a default for this.}
 \item{model}{Optional model. Useful if one wishes to use same model for multiple views}
 \item{editor}{Specification of editor (a view) to override default}
-\item{editor_type}{overide choice of editor by size of values. Must set attr to match desired.}
+\item{editor_type}{overide choice of editor by heuristic based on the number of possible values.
+Must set attr to match desired.}
 \item{...}{Passed to parent proto object during call to proto}}
 \examples{## default is to get/set by value
 a <- choiceItem("a", letters, name="x")
@@ -45,4 +48,7 @@ tb <- choiceItem("a", letters[1:26], name="x", attr=list(size=c(width=300,height
 ## Multiple and size determines widget type
 ## smaller uses checkboxgroup
 cbg <- choiceItem("a", letters[1:5], multiple=TRUE)
-tbl <- choiceItem("a", letters[1:15], multiple=TRUE)}
+## larger uses table
+tbl <- choiceItem("a", letters[1:15], multiple=TRUE)
+## place values in data frame to avoid generic header
+tbl <- choiceItem("a", data.frame("Column header"=letters[1:15]), multiple=TRUE)}

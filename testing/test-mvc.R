@@ -141,7 +141,7 @@ if(0) {
 
 ## test of nested containers
 if(0) {
-
+  ##A# XXX  FAILES
   i <- ItemGroup$proto(items=list(
                          string=stringItem(value="test", name="string", label="String"),
                          number=numericItem(value=NA, name="number",  label="number1"),
@@ -410,7 +410,7 @@ if(0) {
             help=gaction("help", icon="help", handler=function(h,...) gmessage("Call 911"))
             )
 
-  dlg <- Dialog$proto(items=list(
+  dlg <- aDialog(items=list(
                         numericItem(10,name="x"),
                         numericItem(20, name="y")
                         ),
@@ -473,15 +473,13 @@ if(0) {
 
 ## test different validators
 if(0) {
-  i <- stringItem("abc", name="x")
-
-  i$make_ui(cont=gwindow())
+i
 }
 
 ## test notebok
 if(0) {
   dlg <- aDialog(items=list(a=numericItem(0), b=numericItem(0)))
-  view=aNotebook(
+  view=aNotebook(attr=list(expand=TRUE),
     aNotebookPage("a", label="one"),
     aNotebookPage("b", label="two"),
     initial_page=2
@@ -623,20 +621,7 @@ if(0) {
 
 ## profile
 if(0) {
-  dlg <- aDialog(items=list(
-                   file=fileItem("", attr=list(
-                                       filter=list("CSV or TXT"=list(
-                                                     patterns=c("*.csv","*.txt")
-                                                     ),
-                                         "All files" = list(patterns=c("*"))
-                                         ))),
-                   output=tableItem(attr=list(size=c(400,400)), show_label=FALSE)
-                   ),
-                 property_file_value_changed=function(., value, old_value) {
-                   out <- read.csv(value)
-                   .$set_output(out)
-                 })
-  dlg$make_gui()
+
 
   ## setting output (a table can be slow)
   ## WAS set a file #16 (of 120)
@@ -806,7 +791,7 @@ if(0) {
   dlg$make_gui()
 }
 ## test itemList
-if(1) {
+if(0) {
   item <- itemList(items=list(),
                    items_name="Personnel",
                    item_factory = function(.) {
@@ -857,3 +842,10 @@ if(0) {
                      
                        
                                           
+## tableItem isn't working
+if(0) {
+  i <- tableItem(mtcars)
+ 
+  i$make_ui(container=gwindow("tableItem test"))
+  i$set_value(head(mtcars))
+}

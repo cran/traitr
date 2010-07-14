@@ -4,6 +4,7 @@
 \usage{labelItem(value="label", name, label, help="", tooltip="", attr, model,
     editor, ...)}
 \description{Simple label item}
+\details{Useful to adding text to a dialog. Has no interactivity.}
 \value{A proto object. Call \code{obj$show_help()} for its methods and properties}
 \arguments{\item{value}{Default value for the label}
 \item{name}{Required name for object. Names should be unique within a group of items}

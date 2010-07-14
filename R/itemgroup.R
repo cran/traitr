@@ -13,36 +13,36 @@
 ##  A copy of the GNU General Public License is available at
 ##  http://www.r-project.org/Licenses/
 
-#' @include editor.R
+##' @include editor.R
 roxygen()
 
 ##################################################
 ## An item group is the main thing. A Model with a means to be viewed and
 ## adapters defined automatically
 
-#' Base Trait to group items together to form a model. ItemGroups may be viewed as a model, view and controller
-#' bundled together in a tidy package.
-#'
-#' An item group is a collection of Item instances. These
-#' are specified through the \code{items} property as a list.
-#'
-#' ItemGroups implement the observer pattern, so are models and can have observers listen for changes
-#' ItemGroups observe themselves to update the user interface on model changes. One can add other observers if desired.
-#' See the \code{init} method for an example.
-#'
-#' If a method \code{model_value_changed} is defined, then it will be called with the ItemGroup instance being
-#' in whenever a property of the model has a new value. The handlers \code{property_NAME_value_changed} is called
-#' when the main value in item NAME is changed. (An item can have several properties, one of which is the main one.)
-#'
-#' ItemGroups have a \code{make\_gui} method to make a view of the model. The layout of this GUI can be
-#' specified through its \code{gui\_layout} argument, or by default have a simple table layout. ItemGroup instances
-#' are meant to be embedded into a GUI, so the \code{cont} argument is needed to pass in the desired container.
-#'
-#' @export
+##' Base Trait to group items together to form a model. ItemGroups may be viewed as a model, view and controller
+##' bundled together in a tidy package.
+##'
+##' An item group is a collection of Item instances. These
+##' are specified through the \code{items} property as a list.
+##'
+##' ItemGroups implement the observer pattern, so are models and can have observers listen for changes
+##' ItemGroups observe themselves to update the user interface on model changes. One can add other observers if desired.
+##' See the \code{init} method for an example.
+##'
+##' If a method \code{model_value_changed} is defined, then it will be called with the ItemGroup instance being
+##' in whenever a property of the model has a new value. The handlers \code{property_NAME_value_changed} is called
+##' when the main value in item NAME is changed. (An item can have several properties, one of which is the main one.)
+##'
+##' ItemGroups have a \code{make_gui} method to make a view of the model. The layout of this GUI can be
+##' specified through its \code{gui_layout} argument, or by default have a simple table layout. ItemGroup instances
+##' are meant to be embedded into a GUI, so the \code{cont} argument is needed to pass in the desired container.
+##'
+##' @export
 ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
                          ## our properties are instances of Item
                          .doc_items=paste(
-                           desc("property containing items in ItemGroup")
+                           desc("A list containing the items in ItemGroup")
                            ),
                          items=list(),
                          ## methods
@@ -94,18 +94,34 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
                          .doc_to_R=paste(
                            desc("Method to take values in model and return as a named list. Names",
                                 "come from the item names. Each item returns its own value, likely after",
-                                "coercion to the desired type.")
+                                "coercion to the desired type."),
+                           param("drop","If <code>TRUE returns values as a flattened list. Otherwise,",
+                                 "nesting is provided by itemgroup objects")
                            ),
-                         to_R = function(.) {
-                           sapply(.$get_items_only(), function(i) i$to_R())
+                         to_R = function(., drop=TRUE) {
+                           if(drop)
+                             sapply(.$get_items_only(), function(i) i$to_R())
+                           else
+                             lapply(.$get_items(), function(i) i$to_R())
                          },
                          .doc_to_string=paste(
-                           desc("Method to return list of string representations of items")
+                           desc("Method to return list of string representations of items"),
+                           param("drop","If <code>TRUE returns values as a flattened list. Otherwise,",
+                                 "nesting is provided by itemgroup objects")
                            ),
-                         to_string = function(.) {
-                           sapply(.$get_items_only(), function(i) i$to_string())                           
+                         to_string = function(., drop=TRUE) {
+                           if(drop)
+                             sapply(.$get_items_only(), function(i) i$to_string())
+                           else
+                             lapply(.$get_items(), function(i) i$to_string())
                          },
-
+                         ## are all values valid
+                          .doc_is_valid=paste(
+                            desc("Are all items in the itemgroup valid?")
+                            ),
+                          is_valid=function(.) {
+                            all(sapply(.$get_items_only(), function(i) i$is_valid()))
+                          },
                          ## make_gui constructs the GUI from a specifed layout
                          ## parent, visible ignored
                          gui_layout=NULL, # empty by default
@@ -147,7 +163,7 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
                                 "is a table layout with each item being one row.")
                          ),
                          make_default_gui_layout=function(.) {
-                           gui_layout <- do.call("aContainer", .$get_items())
+                           gui_layout <- do.call("aContainer", lapply(.$get_items(), function(i) i$make_default_gui_layout()))
                            gui_layout$context <- .
                            gui_layout
                          },
@@ -198,6 +214,9 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
                            ## call init_model for each item
                            sapply(.$items, function(j) j$do_call("init_model"))
 
+                           ## put parent into each item
+                           sapply(.$items, function(j) j$parent <- .)
+                           
                            ## make get_/set_pairs
                            sapply(.$get_items_only(), function(i) {
                              if(i$has_slot("name")) { 
@@ -269,6 +288,7 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
                          instance=function(.) {
                            obj <- .$proto()
                            obj$items <- lapply(obj$items, function(i) i$instance())
+                           sapply(obj$items, function(i) i$parent <- obj) # add parent
                            if(!is.null(obj$gui_layout)) {
                              obj$gui_layout <- obj$gui_layout$instance()
 ##                              ## gui_layout children need to be instances too
@@ -363,33 +383,44 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
                          )
 
 ## a constructor
-#' Constructor for ItemGroup instances
-#'
-#' An ItemGroup creates a model with properties given by the items
-#' and a default layout for its items. This can also be specified
-#' when the layout is drawn through \code{make\_gui}.
-#' @param items List of Item instances or ItemGroup instances
-#' @param name Name of ItemGroup.
-#' @param ... Passed to ItemGroup proto trait
-#' @seealso \code{\link{aContainer}} for specifying a layout
+##' Constructor for ItemGroup instances
+##'
+##' An ItemGroup creates a model with properties given by the items
+##' and a default layout for its items. This can also be specified
+##' when the layout is drawn through \code{make_gui}.
+##'
+##' An item group bundles a list of items into a model. When
+##' the model is intialized, constructors to access the model values
+##' are created. These getters/setters use the item names, so that
+##' \code{get_name} will get the main value for the item with name
+##' attribute "name".
+##' 
+##' An item group has the useful methods \code{to_R} to return the
+##' values in the model as a named list and \code{get_item_by_name}
+##' to get the item from the list of items matching the name.
+##' @param items List of Item instances or ItemGroup instances
+##' @param name Name of ItemGroup.
+##' @param ... Passed to ItemGroup proto trait
+##' @seealso \code{\link{aContainer}} for specifying a layout
 #     \code{\link{aDialog}} for an extension to an ItemGroup that creates its own window.
-#' @export
-#' @return A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.
-#' @examples
-#' \dontrun{
-#' ## make a simple item group, show in non-default layout
-#' i <- anItemGroup(items=list(
-#'                  numericItem(0,"x"),
-#'                  numericItem(0,"y"),
-#'                  stringItem("","z")
-#'                  ))
-#' lay <- aContainer("x","y", aFrame("z", label="z in a box"))
-#' ## some proto methods:
-#' i$make_gui(cont=gwindow("Example of itemGroup"), gui_layout=lay)
-#' i$get_x()     # get x value
-#' i$set_x(10)   # set x value to 10
-#' i$to_R()      # get list of x,y,z values
-#' }
+##' @export
+##' @return A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.
+##' 
+##' @examples
+##' \dontrun{
+##' ## make a simple item group, show in non-default layout
+##' i <- anItemGroup(items=list(
+##'                  numericItem(0,"x"),
+##'                  numericItem(0,"y"),
+##'                  stringItem("","z")
+##'                  ))
+##' lay <- aContainer("x","y", aFrame("z", label="z in a box"))
+##' ## some proto methods:
+##' i$make_gui(cont=gwindow("Example of itemGroup"), gui_layout=lay)
+##' i$get_x()     # get x value
+##' i$set_x(10)   # set x value to 10
+##' i$to_R()      # get list of x,y,z values
+##' }
 
 
 anItemGroup <- function(items=list(),
@@ -400,7 +431,8 @@ anItemGroup <- function(items=list(),
   
   obj <- ItemGroup$proto(items=items,
                          name=name,
-                         ...)
+                         ...,
+                         funEnvir=FALSE)
   obj$init_model()
   return(obj)
 }
