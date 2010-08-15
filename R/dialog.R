@@ -136,8 +136,8 @@ Dialog <- ItemGroup$proto(class=c("Dialog", ItemGroup$class),
                             ## make window
                             if(.$has_slot("toplevel")) {
                               w <- .$toplevel
-                              svalue(w) <- .$title
-                              visible(w) <- FALSE
+#                              svalue(w) <- .$title
+#                              visible(w) <- FALSE
                             } else {
                               w <- gwindow(.$title, parent=parent, visible=FALSE)
                             }
@@ -151,7 +151,7 @@ Dialog <- ItemGroup$proto(class=c("Dialog", ItemGroup$class),
                               widgets[['toolbar']] <- gtoolbar(.$toolbar_list, container = w)
                             
                             ## main part
-                            g <- ggroup(horizontal=FALSE, cont=widgets[['toplevel']], spacing=10)
+                            g <- ggroup(horizontal=FALSE, cont=widgets[['toplevel']])
 
 
                             .$next_method("make_gui")(., container=g, gui_layout=gui_layout)
@@ -195,7 +195,8 @@ Dialog <- ItemGroup$proto(class=c("Dialog", ItemGroup$class),
                               }
                             }
                             ## set visible if requested
-                            visible(widgets[['toplevel']]) <- visible
+                            if(visible)
+                              visible(widgets[['toplevel']]) <- visible
 
                             ## set widgets
                             .$widget_list <- widgets
@@ -358,6 +359,7 @@ Dialog <- ItemGroup$proto(class=c("Dialog", ItemGroup$class),
 ##"  dlg$make_gui()
 ##' }
 ##' \dontrun{scope_example()}
+##' ## See ?anItemGroup for an example of a modal dialog
   
 
 
@@ -404,7 +406,6 @@ aDialog <- function(items=list(),
 ##' @param make_gui If \code{TRUE} or \code{add_graphic_device=TRUE} then call dialogs \code{make_gui} method
 ##' @param add_graphic_device If \code{TRUE} add an graphicDeviceItem to dialog
 ##' @param ... passed to \code{make_gui} when no graphic device asked for
-##' @return Returns the dialog instance
 ##' 
 ##' @return Returns an instance of \code{aDialog}.
 ##' @export

@@ -1561,9 +1561,8 @@ dataframeItem <- function(value="",     # name of data frame
 ##' @param model Optional model. Useful if one wishes to use same model for multiple views
 ##' @param editor Specification of editor (a view) to override default
 ##' @param ... Passed to parent proto object during call to proto
-##' @seealso \code{\link{dataframeItem}}
+##' @seealso \code{\link{dataframeItem}}, \code{\link{Item}}
 ##' @return A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.
-##' @seealso \code{\link{Item}}
 ##' @examples
 ##' df <- data.frame(a=1:3, b= letters[1:3], c=rnorm(3)) # make a data frame
 ##' dfI <- dataframeItem(value="df", name="dfI")

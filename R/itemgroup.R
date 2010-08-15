@@ -421,6 +421,24 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
 ##' i$set_x(10)   # set x value to 10
 ##' i$to_R()      # get list of x,y,z values
 ##' }
+##' 
+##' ## example of using an item group and gbasicdialog to make a modal  GUI
+##' ig <- anItemGroup(items=list(
+##'                     x=numericItem(2)
+##'                     )
+##'                   )
+##' 
+##' ## using gbasicdialog from gWidgets
+##' \dontrun{
+##' w <- gbasicdialog("testing", handler=function(h,...) {
+##'   . <- h$action                         # action passes in itemgroup
+##'   .$output <- sin(.$get_x())
+##' },
+##'                   action=ig)
+##' ig$make_gui(container=w)
+##' visible(w, TRUE)  ## modal now
+##' print(ig$output)
+##' }
 
 
 anItemGroup <- function(items=list(),

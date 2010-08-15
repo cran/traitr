@@ -98,11 +98,11 @@ Editor <- View$proto(class=c("Editor", View$class),
                              cont[row_no, 2*(col_no-1) + 1, anchor=c(1,1)] <-
                                (label <- glabel(context$label, cont = cont))
                              cont[row_no, 2*(col_no-1) + 2, anchor=c(-1,1), expand=TRUE] <-
-                               (g <- ggroup(cont=cont, horizontal=FALSE, expand=TRUE))
+                               (g <- ggroup(cont=cont, horizontal=FALSE, expand=TRUE, anchor=c(-1,1)))
                            } else {
                              ## add group object to hold widget, spread over 2 columns
                              cont[row_no, 2*(col_no-1) + 1:2, anchor=c(-1,1), expand=TRUE] <-
-                               (g <- ggroup(cont=cont, horizontal=FALSE, expand=TRUE))
+                               (g <- ggroup(cont=cont, horizontal=FALSE, expand=TRUE, fill="x"))
                            }
                            tag(cont, "row_no") <- row_no + (col_no == no_cols)
                            tag(cont, "col_no") <- (col_no %% no_cols) + 1

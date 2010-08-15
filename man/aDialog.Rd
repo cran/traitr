@@ -112,4 +112,5 @@ title="a, c work; b doesn't"
 dlg$b_handler <- function(.) a()  ## $<- has unbound variables found in dlg
 dlg[['c_handler']] <- a           ## [[<- uses lexical scope for unbound variables
 }
-\dontrun{scope_example()}}
+\dontrun{scope_example()}
+## See ?anItemGroup for an example of a modal dialog}

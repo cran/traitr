@@ -5,9 +5,8 @@
     label=name, help="", tooltip="", attr, model, editor, ...)}
 \description{Item to select a variable (or variables) from a selected data frame}
 \details{Needs to have a dataframeItem specified to be useful.}
-\seealso{\code{\link{dataframeItem}}}
+\seealso{\code{\link{dataframeItem}}, \code{\link{Item}}}
 \value{A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.}
-\seealso{\code{\link{Item}}}
 \arguments{\item{value}{Default data frame for the model, defaults to .GlobalEnv}
 \item{multiple}{Allow multiple selection?}
 \item{dataframeItem}{A required dataframeItem instance. This need not be in same display, or even displayed}

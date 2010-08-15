@@ -17,7 +17,6 @@ All arguments should have a default
 A choice items should have its default with a vector. The first argument is the selected one
 A range item is specified with values c(from=., to=..., by=..., [value=from]). If value not give, then from is used.
 The OK_handler will call f.}
-\value{Returns the dialog instance}
 \value{Returns an instance of \code{aDialog}.}
 \arguments{\item{f}{function to make dialog for. Its arguments must be specified in a certain way.}
 \item{title}{Title for dialog window}

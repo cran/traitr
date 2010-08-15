@@ -35,7 +35,7 @@ Container <- BaseTrait$proto(class=c("Container", BaseTrait$class),
                               container=NULL,  # stores base container
                               children=list(),     # stores children
                               type="glayout",
-                              attr=list(),
+                              attr=list(spacing=0),
                               .doc_context=paste(
                                 desc("Context for container to look up values, such as whether to draw a label",
                                      "Usually inherited from calling object")
@@ -319,8 +319,8 @@ aContext <- function(...,
               )
   }       
   
-  if(!missing(enabled_when)) obj$enabled_when <- enabled_when
-  if(!missing(visible_when)) obj$visible_when <- visible_when
+  if(!missing(enabled_when)) obj[['enabled_when']] <- enabled_when
+  if(!missing(visible_when)) obj[['visible_when']] <- visible_when
   obj
 }
 
@@ -359,8 +359,8 @@ aContainer <- function(..., context=NULL, attr=list(), enabled_when, visible_whe
   obj <- Container$proto(children=list(...),
                          attr=list(),
                          context=context)
-  if(!missing(enabled_when)) obj$enabled_when <- enabled_when
-  if(!missing(visible_when)) obj$visible_when <- visible_when
+  if(!missing(enabled_when)) obj[['enabled_when']] <- enabled_when
+  if(!missing(visible_when)) obj[['visible_when']] <- visible_when
   obj
 }
 
@@ -392,8 +392,8 @@ aTableLayout <- function(..., no_cols=1,# no_cols is really 2 * no_cols, we don'
                          no_cols=no_cols,
                          context=context,
                          attr=attr)
-  if(!missing(enabled_when)) obj$enabled_when <- enabled_when
-  if(!missing(visible_when)) obj$visible_when <- visible_when
+  if(!missing(enabled_when)) obj[['enabled_when']] <- enabled_when
+  if(!missing(visible_when)) obj[['visible_when']] <- visible_when
   obj
 
 }
@@ -426,8 +426,8 @@ aGroup <- function(..., horizontal=TRUE, spacing=10,
   ## issue with lazy eval if done in constructor  
   obj$attr <- merge(list(horizontal=horizontal, spacing=spacing), attr, overwrite=FALSE) 
 
-  if(!missing(enabled_when)) obj$enabled_when <- enabled_when
-  if(!missing(visible_when)) obj$visible_when <- visible_when
+  if(!missing(enabled_when)) obj[['enabled_when']] <- enabled_when
+  if(!missing(visible_when)) obj[['visible_when']] <- visible_when
   obj
 }
 
@@ -460,8 +460,8 @@ aFrame <- function(..., label="frame label", horizontal=FALSE, spacing=10,
                   context=context)
   obj$attr <- merge(list(text=label, horizontal=horizontal, spacing=spacing), attr)
 
-  if(!missing(enabled_when)) obj$enabled_when <- enabled_when
-  if(!missing(visible_when)) obj$visible_when <- visible_when
+  if(!missing(enabled_when)) obj[['enabled_when']] <- enabled_when
+  if(!missing(visible_when)) obj[['visible_when']] <- visible_when
   obj
 }
 
@@ -501,8 +501,8 @@ anExpandGroup <- function(..., label="", horizontal=FALSE, expanded=TRUE,
                   })
   obj$attr <- merge(list(text=label, horizontal=horizontal), attr)
 
-  if(!missing(enabled_when)) obj$enabled_when <- enabled_when
-  if(!missing(visible_when)) obj$visible_when <- visible_when
+  if(!missing(enabled_when)) obj[['enabled_when']] <- enabled_when
+  if(!missing(visible_when)) obj[['visible_when']] <- visible_when
   obj
 }                    
 
@@ -540,8 +540,8 @@ aPanedGroup <- function(..., horizontal=TRUE,
                   )
   obj$attr <- merge(list(horizontal=horizontal), attr)
   
-  if(!missing(enabled_when)) obj$enabled_when <- enabled_when
-  if(!missing(visible_when)) obj$visible_when <- visible_when
+  if(!missing(enabled_when)) obj[['enabled_when']] <- enabled_when
+  if(!missing(visible_when)) obj[['visible_when']] <- visible_when
   obj
 }
 
@@ -589,8 +589,8 @@ aNotebook <- function(..., close_buttons=FALSE, initial_page=1,
                          )
   obj$attr <- merge(list(closebuttons=close_buttons), attr)
 
-  if(!missing(enabled_when)) obj$enabled_when <- enabled_when
-  if(!missing(visible_when)) obj$visible_when <- visible_when
+  if(!missing(enabled_when)) obj[['enabled_when']] <- enabled_when
+  if(!missing(visible_when)) obj[['visible_when']] <- visible_when
 
   return(obj)
 }
@@ -615,8 +615,8 @@ aNotebookPage <- function(..., label,
   obj$add_class("NotebookPage")
   
   obj$label <- label
-  if(!missing(enabled_when)) obj$enabled_when <- enabled_when
-  if(!missing(visible_when)) obj$visible_when <- visible_when
+  if(!missing(enabled_when)) obj[['enabled_when']] <- enabled_when
+  if(!missing(visible_when)) obj[['visible_when']] <- visible_when
 
   return(obj)
 }

@@ -1,4 +1,5 @@
 ## future releases:
+* add model option to aDialog if possible
 DONE * tableItem with set_value -- editor doesn't listen to itself?
 * addSpring -- to space between children
 * don't like how I can't adjust expand property for children of aGroup
