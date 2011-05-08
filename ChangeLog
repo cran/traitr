@@ -1,3 +1,8 @@
+2010-10-20  john verzani  <verzani@john-verzanis-macbook-pro.local>
+
+	* R/items.R (trueFalseItem): added coerce_with, fixed validate
+	method to return logical values, not character
+
 2010-07-13  john verzani  <verzani@john-verzanis-macbook-pro.local>
 
 	* R/dialog.R: added funEnvir=FALSE argument to aDialog and

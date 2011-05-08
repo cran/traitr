@@ -378,7 +378,7 @@ BooleanEditor <- Editor$proto(class=c("BooleanEditor", Editor$class),
                                 .$next_method("make_ui")(., container, attr, context, ...)
                               },
                               make_ui_compact=function(., container, attr=.$attr, context, ...) {
-                                widget <- gcheckbox("", cont=container)
+                                widget <- gcheckbox("", cont=container, ...) # possible use.togglebutton=TRUE
                                 .$append("widgets", widget, key=.$view_widget_name)
                               }
                               )
@@ -457,7 +457,7 @@ ImageEditor <- Editor$proto(class=c("ImageEditor", Editor$class),
                             editor_name="gimage")
 
 
-##' Trait for embedding graphics (RGtk2 only)
+##' Trait for embedding graphics (Qt, RGtk2 only)
 ##'
 ##'
 ##' @rdname Editor

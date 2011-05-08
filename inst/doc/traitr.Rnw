@@ -615,7 +615,7 @@ value, not the GUI presentation of the value.
 Items are constructed through one of the item
 constructors. Table~\ref{tab:item-constructors} lists the currently
 available ones. The constructors have some common arguments:
-\args{value} to specify the initial value of the item; \args{name}
+\args{value} to specify the initinial value of the item; \args{name}
 to specify the unique name for the item within a dialog (this can also
 be specified through a named list); \args{label} for a text label to
 identify the argument (defaults to \args{name}); \args{tooltip} to

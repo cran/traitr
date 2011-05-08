@@ -1,4 +1,5 @@
 ## Private notes to install etc with roxygen code
+
 R CMD  roxygen -d traitr;
 R CMD build traitr;
 R CMD check traitr_0.XX.tar.gz;

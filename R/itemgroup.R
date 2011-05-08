@@ -285,6 +285,9 @@ ItemGroup <- Model$proto(class=c("ItemGroup",  Model$class),
                            .$update_ui()
                          },
                          ## instance
+                         .doc_instance=paste(
+                           desc("Create an instance of the item group (a clone of model, not GUI elements)")
+                           ),
                          instance=function(.) {
                            obj <- .$proto()
                            obj$items <- lapply(obj$items, function(i) i$instance())

@@ -694,7 +694,7 @@ numericItem <- function(value=numeric(0), # a number
   
   if(eval_first) {
     obj$coerce_with <- function(., value) {
-      value <- eval(parse(text=value))
+      value <- eval(parse(text=value), envir=.GlobalEnv)
       as.numeric(value)
     }
   } else {
@@ -728,7 +728,7 @@ numericItem <- function(value=numeric(0), # a number
 ##' @param editor Specification of editor (a view) to override default
 ##' @param ... Passed to parent proto object during call to proto
 ##' @return A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.
-##' @seealso numericItem
+##' @seealso \code{\link{numericItem}}
 integerItem <- function(value=integer(0),
                         name,            # for lookup with item group
                         label=name,      # for display
@@ -762,7 +762,7 @@ integerItem <- function(value=integer(0),
   ## difference is in coercion function
   if(eval_first) 
     obj$coerce_with <- function(., value) {
-      value <- eval(parse(text=value))
+      value <- eval(parse(text=value), envir=.GlobalEnv)
       as.integer(value)
     }
   else
@@ -783,7 +783,7 @@ integerItem <- function(value=integer(0),
 }
 
 
-##' Item for typing in R expressions. These are eval-xparsed in .GlobalEnv prior to return
+##' Item for typing in R expressions. These are eval-parsed in .GlobalEnv prior to return
 ##'
 ##' @export
 ##' @param value Default value for the model
@@ -886,13 +886,17 @@ trueFalseItem <- function(value=TRUE,
                    add_handler_name="addHandlerChanged",
                    ...)
  obj$add_class("BooleanItem")
+
+ ## override methods
  obj$validate <- function(., rawvalue) {
-   value <- .$next_method("validate")(., rawvalue)
+   value <- as.logical(.$next_method("validate")(., rawvalue))
    if(is.logical(value))
      return(value)
    else
      stop("Not logical")
  }
+ obj$coerce_with <- function(., value) as.logical(value)
+
  if(!missing(attr))
    obj$attr <- merge(obj$attr, attr)
  
@@ -1646,9 +1650,9 @@ variableSelectorItem <- function(value=NA,
 
 ##' A graphic device item. (Only with RGtk2 and cairoDevice!)
 ##'
-##' This device will become the current one if the mouse clicks in the window, or even just crosses over the window.
+##' This device will become the current one if the mouse clicks in the window,
 ##' This isn't perfect, but should be easy enough to get used to.
-##' This only works with gWidgetsRGtk2
+##' This only works with gWidgetsRGtk2, gWidgetsQt
 ##' @export
 ##' @param value ingored
 ##' @param name Required name for object. Names should be unique within a group of items
@@ -1660,7 +1664,9 @@ variableSelectorItem <- function(value=NA,
 ##' @param editor ignored
 ##' @param ... Passed to parent proto object during call to proto
 ##' @return A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.
-##' @note There is some thing odd that causes a display to pop up before the cairo Device if no devices are open.
+##' @note With \pkg{gWidgetsRGtk2}, there is some thing odd that
+##' causes a display to pop up before the cairo Device if no devices
+##' are open.
 ##' @seealso \code{\link{Item}}
 ##' @examples
 ##' graphIt <- function(n, ...) hist(rnorm(n))
@@ -1755,8 +1761,8 @@ imageItem <- function(value="",
   return(obj)
 }
 
-###' List editor -- list <-> tree, must have special structure to list?
-
+##' List editor -- list <-> tree, must have special structure to list?
+##' XXX This needs writing
 
 ##' An item to display a table of data (given as a matrix or data.frame)
 ##'

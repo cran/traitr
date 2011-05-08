@@ -3,7 +3,7 @@
 \title{Item for typing in R expressions.}
 \usage{expressionItem(value="", name, label=name, help="", tooltip="", attr,
     model, editor, ...)}
-\description{Item for typing in R expressions. These are eval-xparsed in .GlobalEnv prior to return}
+\description{Item for typing in R expressions. These are eval-parsed in .GlobalEnv prior to return}
 \value{A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.}
 \seealso{\code{\link{numericItem}}, \code{\link{integerItem}}, \code{\link{stringItem}}, as these are
 similar, but also validate the final results}

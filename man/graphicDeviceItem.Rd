@@ -4,11 +4,13 @@
 \usage{graphicDeviceItem(value="", name, label=name, help="", tooltip="",
     attr=list(size = c(480, 480)), model, editor, ...)}
 \description{A graphic device item. (Only with RGtk2 and cairoDevice!)}
-\details{This device will become the current one if the mouse clicks in the window, or even just crosses over the window.
+\details{This device will become the current one if the mouse clicks in the window,
 This isn't perfect, but should be easy enough to get used to.
-This only works with gWidgetsRGtk2}
+This only works with gWidgetsRGtk2, gWidgetsQt}
 \value{A \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.}
-\note{There is some thing odd that causes a display to pop up before the cairo Device if no devices are open.}
+\note{With \pkg{gWidgetsRGtk2}, there is some thing odd that
+causes a display to pop up before the cairo Device if no devices
+are open.}
 \seealso{\code{\link{Item}}}
 \arguments{\item{value}{ingored}
 \item{name}{Required name for object. Names should be unique within a group of items}
