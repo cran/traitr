@@ -462,6 +462,7 @@ ImageEditor <- Editor$proto(class=c("ImageEditor", Editor$class),
 ##'
 ##' @rdname Editor
 GraphEditor <- Editor$proto(class=c("GraphEditor", Editor$class),
+                            attr=list(),
                             editor_name="ggraphics",
                             set_value_in_view = function(.,...) {},
                             get_value_from_view= function(.,...) {}
@@ -502,6 +503,9 @@ TableEditor <- Editor$proto(class=c("TableEditor", Editor$class),
                               }
                             },
                             get_value_from_view=function(., ...) {},
+                            get_widget=function(., ...) {
+                              .$widgets[[.$view_widget_name]]
+                            },
                             make_ui=function(., container, attr=.$attr, context=., ...) {
                               df <- context$do_call(sprintf("get_%s",context$name))
                               if(!is.data.frame(df))

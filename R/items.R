@@ -1693,6 +1693,7 @@ graphicDeviceItem <- function(value="", # ignored
   
   obj <- Item$proto(name=name,
                     editor=GraphEditor$proto(),
+                    attr=attr,
                     add_handler_name="",
                     show_label=FALSE,
                     init=function(.,...) {},
@@ -1808,6 +1809,12 @@ tableItem <- function(value=data.frame(V1="",V2=""),
   obj$coerce_with <- function(.,value, ...) value
   obj$validate <- NULL
 
+  obj$to_R <- function(., drop=TRUE) {
+    l <- list()
+    l[[.$name]] <- svalue(.$editor$get_widget(), drop=drop)
+    l
+  }
+  
   if(!missing(attr))
     obj$attr <- merge(obj$attr, attr)
   

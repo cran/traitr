@@ -245,7 +245,8 @@ Table~\ref{tab:item-constructors}. Adding more is on the TODO list.
 To begin with \pkg{traitr}, we load the package and specify a
 \pkg{gWidgets} implementation. 
 
-<<>>=
+
+<<require, eval=FALSE>>=
 require(traitr)
 require(gWidgets)
 options(guiToolkit="RGtk2")
@@ -258,7 +259,7 @@ buttons.
 
 To see how a simple GUI can be made, here we construct a GUI to
 collect a number and string:
-<<>>=  
+<<dlg, eval=FALSE>>=  
 dlg <- aDialog(items=list(
                  number=numericItem(0),
                  string=stringItem("")
@@ -306,7 +307,7 @@ naming convention. For the dialog buttons, if one defines a function
 (\meth{buttonname\_handler}), then this will be called when the button
 ``buttonname'' is clicked. For example, to make the dialog do
 something else, we have:
-<<>>=
+<<dlg2, eval=FALSE>>=
 dlg <- aDialog(items=list(
                  number=numericItem(0),
                  string=stringItem("")
@@ -330,7 +331,7 @@ for \code{do.call} --  and this handler simply
 echoes them back in a friendly manner. Individual properties in the
 dialog can be accessed through ``getters.'' These follow the naming
 convention \code{get\_PROPERTYNAME}, as in
-<<>>=
+<<eval=FALSE>>=
 dlg$get_number()
 @ 
 (The \code{number} is the name assigned to the item. In this case --
@@ -341,7 +342,7 @@ To make a less trivial dialog we just need to have more complicated
 functions. What follows is a dialog~(Figure~\ref{fig:t-test-1}) for computing a $t$-test when the
 values are summarized. First a function to compute the $p$-value.
 %% basic -- t.test
-<<>>=
+<<eval=FALSE>>=
 basic.t.test <- function(mean, mu, sd, alternative=c("two.sided","less","greater"),
                          n, ...) {
   alternative <- match.arg(alternative)
@@ -355,7 +356,7 @@ basic.t.test <- function(mean, mu, sd, alternative=c("two.sided","less","greater
 @ 
 Our dialog setup is similar, but we have more variables that need
 their type specified:
-<<>>=
+<<eval=FALSE>>=
 dlg <- aDialog(items=list(
                  mean=numericItem(0),
                  sd=numericItem(1),
@@ -411,7 +412,7 @@ items. There are a few view constructors, similar to the containers in
 
 
 The basic layout is equivalent to:
-<<>>=
+<<eval=FALSE>>=
 view <- aContainer("mean","sd","n","mu","alternative","output")
 @ 
 The \constructor{aContainer} constructor simply lays out its child components
@@ -423,7 +424,7 @@ in the example, found from using a named list to define the items.)
 
 To make a more complicated layout, we nest the containers. Here is how
 one can separate out the computed values from the hypotheses using frames:
-<<>>=
+<<eval=FALSE>>=
 view <- aContainer(aFrame("mean","sd","n", label="Statistics"),
                    aFrame("mu", "alternative", label="Hypotheses"),
                    "output")
@@ -432,7 +433,7 @@ view <- aContainer(aFrame("mean","sd","n", label="Statistics"),
 However, this view will not align values, as the \constructor{aFrame}
 container is just a box container. Instead we add in another
 level with \constructor{aContainer} (Figure~\ref{fig:t-test-2}):
-<<>>=
+<<eval=FALSE>>=
 view <- aContainer(aFrame(aContainer("mean","sd","n"), label="Statistics"),
                    aFrame(aContainer("mu","alternative"),label="Hypotheses"),
                    separatorItem(),
@@ -442,7 +443,7 @@ To see this in action, to save typing, we use the \meth{instance} method, which 
 simply copies the
 dialog object. Then to specify a view different than the default, we
 use the \args{gui\_layout} argument of the \meth{make\_gui} method:
-<<>>=
+<<eval=FALSE>>=
 dlg1 <- dlg$instance() ## instead of copying the definition above.
 dlg1$make_gui(gui_layout=view)
 @ 
@@ -467,7 +468,7 @@ To see how to specify our own validation function,~\footnote{Validation
 function, then add it to the item. For the standard deviation, we
 shouldn't be able to specify non-positive standard deviations. A
 function to check this would be:
-<<>>=
+<<eval=FALSE>>=
 positive_value <- function(., rawvalue) {
   value <- as.numeric(rawvalue)
   if(!value > 0)
@@ -487,7 +488,7 @@ method:~\footnote{Here we see the ease of using the \pkg{proto}
   package, but it is also a burden. It is quite possible to assign to a
 ``private'' method, thereby having very unintended side effects that
 can be hard to debug.}
-<<>>=
+<<eval=FALSE>>=
 sd <- numericItem(1, name="sd")
 sd$validate <- positive_value
 @ 
@@ -495,7 +496,7 @@ sd$validate <- positive_value
 
 To do this for our dialog object, we can grab the item from the
 dialog, then specify its validation method:
-<<>>=
+<<eval=FALSE>>=
 sd <- dlg$get_item_by_name("sd")         # lookup and return item by name
 sd$validate <- positive_value            # assigns method to item
 dlg1 <- dlg$instance()
@@ -515,7 +516,7 @@ value to be parsed and evaluated in the global environment. This allows the
 user to specify a variable name or \R\/ expression for the variable,
 and not just a number. 
 
-<<>>=
+<<eval=FALSE>>=
 dlg <- aDialog(items=list(
                  x = numericItem(NA, eval=TRUE),
                  y = numericItem(NA, eval=TRUE),
@@ -568,7 +569,7 @@ The basic dialog calls a function when the OK button is clicked.
 Making a more interactive GUI, say to update when a value is changed,
 can be done by creating a method \meth{model\_value\_changed}. For
 example, here is a GUI~(Figure \ref{fig:why-wait}) to draw a graph for a random sample of size $n$.
-<<>>=
+<<eval=FALSE>>=
 drawGraph <- function(n,..) hist(rnorm(n))
 dlg <- aDialog(items=list(
                  n=rangeItem(10, from=1, to=100, by=1),
@@ -673,7 +674,7 @@ a data frame. The \constructor{variableSelectorItem} constructor
 requires such an object to be passed to it, in order for it to have a
 context to find names in. For example
 
-<<>>=
+<<eval=FALSE>>=
 dfi <- dataframeItem(value=".GlobalEnv", name="dfi", 
                      editor_style="compact") # alternative editor style
 dlg <- aDialog(items=list(
@@ -713,7 +714,7 @@ Item groups implement the model interface, described in the next section.
 Item groups can allow for resuse of parts of a GUI. In this example, we
 see how we can separate some pieces out that are common to both a
 $t$-test and a Wilcox test call:
-<<>>=
+<<eval=FALSE>>=
 hyps <- anItemGroup(items=list(
                       mu=numericItem(0), 
                       alternative=choiceItem("two.sided", c("two.sided","less","greater"))
@@ -780,7 +781,7 @@ say \code{x}, there are always methods \meth{get\_x} to get the value
 and \meth{set\_x} to set the value. The get method returns a raw
 value, unlike the method \meth{to\_R} which returns a value after
 coercion to the appropriate type. For example:
-<<>>=
+<<eval=FALSE>>=
 i <- numericItem(0, name="item1")
 i$get_item1()
 i$set_item1(3)
@@ -790,7 +791,7 @@ i$get_item1()
 @ 
 
 Where as, we can have the value run through \code{eval} to have:
-<<>>=
+<<eval=FALSE>>=
 i <- numericItem(0, name="item2", eval=TRUE)
 i$set_item2("c(1,2,3)")                 # now okay
 i$get_item2()
@@ -799,7 +800,7 @@ i$to_R()                                # coerced
 
 Item groups and dialogs also implement these methods, as they act as
 models with several properties:
-<<>>=
+<<eval=FALSE>>=
 dlg <- aDialog(items=list(
                  x=numericItem(0),
                  y=stringItem("a")
@@ -820,7 +821,7 @@ but another property to store the values to choose from. To access a
 secondary property, we first extract the item by name with the
 \meth{get\_item\_by\_name} method of item groups, and then use the item's
 getter/setter values. For example:
-<<>>=
+<<eval=FALSE>>=
 ig <- anItemGroup(items=list(
                   x=numericItem(1),
                   y=choiceItem("a", values=letters[1:5])
@@ -849,7 +850,7 @@ To add an observer to a model, the \meth{add\_observer} method is
 used, whereas \meth{remove\_observer} is provided to remove the observer.
 This example defines two dialogs, the second with a suitably named
 method and then has the second observer change in the first.
-<<>>=
+<<eval=FALSE>>=
 dlg <- aDialog(items=list(
                  x=numericItem(0),
                  y=numericItem(0)
@@ -873,7 +874,7 @@ A dialog listens to itself, which allows the change of one property
 to update another. This example shows how the image is updated whenever
 the file is changed.
 
-<<>>=
+<<eval=FALSE>>=
 dlg <- aDialog(items=list(
                  f=fileItem(""),
                  i=imageItem("",attr=list(size=c(480,480)))
@@ -897,7 +898,7 @@ An item can share a model with another item. This allows for
 synchronization of values in a GUI. There are several means to do
 this: specifying the model at construction, calling the
 \meth{set\_model} method, or calling the \meth{instance} method. For example,
-<<>>=
+<<eval=FALSE>>=
 i <- numericItem(0, name="x")
 j <- numericItem(1, name="x")
 j$get_x()
@@ -953,7 +954,7 @@ objects. Basically, a list of \constructor{gaction} objects (of
 \pkg{gWidgets}) are specified to
 the dialog properties \args{menu\_list} and \args{toolbar\_list}. 
 
-<<>>=
+<<eval=FALSE>>=
 mb_l <- list(File=list(
                New=gaction("new", icon="new", handler=function(h,...) print("New")),
                Quit=gaction("quit", icon="quit", handler=function(h,...) dlg$close_gui())
@@ -986,7 +987,7 @@ To specify other buttons, simply provide the names to the
 \property{buttons} property prior to construction of the GUI. For example,
 to have a GUI whose closure depends on the value of $x$ being changed,
 we might have:
-<<>>=
+<<eval=FALSE>>=
 dlg <- aDialog(items=list(
                  x=numericItem(0)
                  ),
@@ -1013,7 +1014,7 @@ The underlying \code{proto} package treats methods differently than
 may be expected. In particular, sometimes lookup for a variable
 happens in a different place than expected. For example:
 
-<<>>=
+<<eval=FALSE>>=
 fun <- function() {
   a <- 1
   dlg <- aDialog(items=list(),
@@ -1167,7 +1168,7 @@ container needed. However, this isn't available until after the GUI
 has been drawn.
 
 This idea is illustrated below:
-<<>>=
+<<eval=FALSE>>=
 dlg <- aDialog(items=list(x=numericItem(1)))
 g <- aGroup()                           # define outside view to access later
 view <- aContainer("x",g)
@@ -1191,7 +1192,7 @@ place where objects will be added in the GUI construction. This is
 implemented by hiding the visibility of the container through its
 \meth{visible\_when} method.
 
-<<>>=
+<<eval=FALSE>>=
 dlg <- aDialog(items=list(x=numericItem(0)))
 g <- aGroup(visible_when=function(.) FALSE) # suppress showing
 view <- aContainer("x", g)
@@ -1221,7 +1222,7 @@ to click once the selction is done. Here we give a slightly better
 alternative, with a bit more information and also connect to a double
 click event. The
 key function, \code{setCran}, is taken from the original with slight modification.
-<<>>=
+<<eval=FALSE>>=
 m <- getCRANmirrors(all = FALSE, local.only = FALSE)[,c(1,2,4)]
 setCran <- function(.,...) {
   URL <- .$get_cran()
@@ -1232,7 +1233,7 @@ setCran <- function(.,...) {
 }
 @
 Now we define our model, and use the default view.
-<<>>=
+<<eval=FALSE>>=
 dlg <- aDialog(items=list(
                  cran=choiceItem(value=NA, values=m,
                    show_label=FALSE,  # suppress label
@@ -1264,7 +1265,7 @@ The \code{tkdensity} demo is a standard in the \pkg{tcltk}
 package. Here we redo the demo using \pkg{traitr}
 (Figure~\ref{fig:tkdensity-traitr}). This function will make the
 density plot for us, in a manner similar to that of the demo.
-<<replot>>=
+<<replot,eval=FALSE>>=
   replot <- function(.) {
     l <- .$to_R()
     f <- function(dist, kernel, n, bw,...) {
@@ -1279,7 +1280,7 @@ density plot for us, in a manner similar to that of the demo.
 Here we define the items and the dialog properties. There are 5 main
 items, including the graphic device. The labels are suppressed, as we
 use a frame to set off similar to the original example. 
-<<>>=
+<<eval=FALSE>>=
 dlg <- aDialog(items=list(
                  dist=choiceItem("Normal", values=c("Normal","Exponential"),
                    show_label=FALSE),
@@ -1301,7 +1302,7 @@ dlg <- aDialog(items=list(
 Our layout places the controls on the left within frames, and the
 graphic device on the right. We use only the 'Cancel' button to match,
 somewhat, the demo.
-<<>>=
+<<eval=FALSE>>=
 view <- aGroup(aContainer(aFrame("dist", label="Distribution"),
                           aFrame("kernel", label="Kernel"),
                           aFrame("n", label="Sample size"),
@@ -1328,7 +1329,7 @@ examples of it being used.
 
 The most basic usage is to edit a vector of values, as here where the
 items are numeric.
-<<>>=
+<<eval=FALSE>>=
 i1 <- itemList(items=list(),
                items_names="x",
                item_factory=function(.) numericItem(0)
@@ -1337,11 +1338,11 @@ i1$make_ui(container=gwindow("Basic Use"))
 @ 
 If we add some items, we see that the \code{to\_R} method will return
 a list of item values.
-<<>>=
+<<eval=FALSE>>=
 ## add some items offline
 for(i in 1:2) i1$append_item(i1$item_factory())
 @ 
-<<>>=
+<<eval=FALSE>>=
 i1$to_R()
 @ 
 
@@ -1350,7 +1351,7 @@ follows. Rather than have a single item, we have an item group to
 edit. The new \code{to\_string} method is needed as this method gets
 called to label the table that shows the list of defined items. It
 should return a character vector of length $1$.
-<<>>=
+<<eval=FALSE>>=
 i2 <- itemList(items=list(),
                items_names="Data frame rows",
                item_factory=function(.) {
@@ -1363,7 +1364,7 @@ i2 <- itemList(items=list(),
 We provide a custom \code{to\_R} method to take the output and
 place into a data frame. (Suggestions for a more elegant solution here
 are most welcome.)
-<<>>=
+<<eval=FALSE>>=
 i2$to_R <- function(.) {
   items <- .$get_value()
   if(length(items) == 0) {
@@ -1380,7 +1381,7 @@ i2$to_R <- function(.) {
 @ 
 
 And the basic call:
-<<>>=
+<<eval=FALSE>>=
 i2$make_ui(container=gwindow("Basic Use to make data frame"))
 @               
 
@@ -1411,7 +1412,7 @@ could have been implemented using \constructor{stringItem}s which
 evaluate their argument first.
 
 First, the model part:
-<<>>=
+<<eval=FALSE>>=
 dlg <- aDialog(items=list(
                  file=fileItem("", attr=list(
                                      filter=list("CSV or TXT"=list(
@@ -1457,7 +1458,7 @@ and preview features. Above, we manually set the size in the \code{output}
 object above, as
 it does not gracefully allocate enough size to itself when the
 \pkg{gWidgetsRGtk2} backend is used.
-<<>>=
+<<eval=FALSE>>=
 view <- aGroup(aNotebook(
                          aNotebookPage("file",
                                        separatorItem(),
@@ -1481,7 +1482,7 @@ The main function called to update the UI is this one, which
 checks the file type, then reads in the file using either
 \code{read.csv} or \code{read.table}. If successful, it returns the
 data frame.
-<<>>=
+<<eval=FALSE>>=
 dlg$read_file <- function(., file.type, output, assign.to, ...) {
   if(file.type != "") {
     out <- try(do.call(sprintf("read.%s",file.type), list(...)), silent=TRUE)
@@ -1499,7 +1500,7 @@ dlg$read_file <- function(., file.type, output, assign.to, ...) {
 To integrate the \code{read\_file} method, we set up the following
 handler for control:
 
-<<>>=
+<<eval=FALSE>>=
 dlg$model_value_changed <- function(.) {
   fname <- .$get_file()
   if(file.exists(fname)) {
@@ -1530,7 +1531,7 @@ Finally, we change the default \meth{OK\_handler} to output the
 value to the given name. We use a \pkg{gWidgets} call to
 \constructor{gconfirm} to avoid overwriting a variable name without permission.
 
-<<>>=
+<<eval=FALSE>>=
 dlg$OK_handler <- function(.) {
   out <- .$do_call("read_file",.$to_R())
   assign.to <- .$get_assign.to()
@@ -1543,7 +1544,7 @@ dlg$OK_handler <- function(.) {
 @ 
 
 The GUI is drawn as usual now:
-<<>>=
+<<eval=FALSE>>=
 dlg$make_gui(gui_layout=view)
 @ 
 
@@ -1559,7 +1560,7 @@ appropriate changing of the model, we could replace the
 \meth{model\_value\_changed} code with the following. First we
 have a different response when the file is changed, as we need to find
 the file type and adjust some arguments for CSV files.
-<<>>=
+<<eval=FALSE>>=
 dlg$property_file_value_changed <- function(., value, old_value) {
   if(file.exists(value)) {
     for(i in c("txt","csv")) {
@@ -1581,7 +1582,7 @@ The call to \meth{set\_output} will be done by both \meth{set\_sep} and
 
 Now to update the preview when an argument is changed, we set up the
 appropriate \code{property\_XXX\_value\_changed} methods, as follows:
-<<>>=
+<<eval=FALSE>>=
 nms <- names(dlg$get_items())
 nms <- setdiff(nms, c("file","file.type","assign.to","output"))
 QT <- sapply(nms, function(i) {
@@ -1615,7 +1616,7 @@ This function creates a list of items from a row in the data
 frame. The \meth{set\_model} method for a dialog takes a dialog or
 item group for an argument. The output of this function will provide
 the items value.
-<<>>=
+<<eval=FALSE>>=
 m <- mtcars
 nms <- names(m)
 make_model <- function(i) {
@@ -1630,7 +1631,7 @@ Here we initialize the dialog and make two buttons to scroll through
 the rows. The \code{set\_row} method finds the next row to show, then
 creates an item group which is used for our new model. The same
 extractor method, \code{get\_i} is used in the button handlers.
-<<>>=
+<<eval=FALSE>>=
 dlg <- aDialog(items=make_model(1),
                title="Data frame scroller",
                help_string="Press buttons to scroll through data set",
@@ -1653,7 +1654,7 @@ dlg <- aDialog(items=make_model(1),
                })
 @ 
 We now make the GUI (Figure~\ref{fig:df-scroll}).
-<<>>=
+<<eval=FALSE>>=
 dlg$make_gui()
 @ 
 That's it. We leave for later perhaps using a scroller to scroll
@@ -1667,7 +1668,7 @@ A wizard, or multi-page dialog is a common GUI arrangement. Here is
 one way to implement such a feature, maybe not the best. We create a
 model to store our values and use instances of this model and views
 to show just part.
-<<>>=
+<<eval=FALSE>>=
 model <- aDialog(items=list(
                    a=stringItem(""),
                    b=stringItem("")
@@ -1718,7 +1719,7 @@ This example will also demonstrate how one can create components with
 The Spotfire demos all have a description page. Here illustrate how
 PANGO markup can be used with a label item to provide some markup for
 the instructions.
-<<SpotfireExample>>=
+<<SpotfireExample,eval=FALSE>>=
 theDesc <- paste("<b>Spotfire</b>",
                  "The Spotfire web player (http://spotfire.tibco.com)",
                  "has several demos built around a somewhat similar set-up:",
@@ -1734,7 +1735,7 @@ The data set we will use here is the standy \code{mtcars} one. This
 would be customized to the GUI in question. Our table display will
 also include a label to display the number of selected cases (rows)
 after filtering has occurred.
-<<dataDisplay>>=
+<<dataDisplay,eval=FALSE>>=
 theData <- mtcars
 makeLabel <- function(nr) sprintf("<b>%s</b> cases",nr)
 dataDisplay <- anItemGroup(items=list(
@@ -1746,7 +1747,7 @@ dataDisplay <- anItemGroup(items=list(
 @ 
 We define this handler to synchronize the label with the size of the
 data being displayed.
-<<>>=
+<<eval=FALSE>>=
 ## synchronize labe with data dimension
 dataDisplay$property_data_value_changed <- function(., value, old_value)
   .$set_label(makeLabel(nrow(.$get_data())))
@@ -1756,7 +1757,7 @@ We wish to specify the layout for the data table here, rather than in
 a monolithic specification when the entire GUI is constructed. By
 doing so, we could reuse this in other GUIs without much fuss. To do
 so, we redefine the method to define the default layout.
-<<>>=
+<<eval=FALSE>>=
 dataDisplay$make_default_gui_layout <- function(.) {
   aGroup("data",
          aGroup(labelItem("", attr=c(expand=TRUE)),"label", horizontal=TRUE),
@@ -1773,7 +1774,7 @@ We begin with a filter to narrow down by levels of a variable. The
 are selected.  For this, we also specify a default layout. Together,
 this creates a component that can easily be incorporated into another
 item group.
-<<filterBy>>=
+<<filterBy,eval=FALSE>>=
 var <- "cyl"
 varLevels <- sort(unique(theData[, var]))
 cylFilter <- anItemGroup(name=var,
@@ -1795,7 +1796,7 @@ cylFilter <- anItemGroup(name=var,
 @ 
 
 This shows a filter for a numeric variable.
-<<>>=
+<<eval=FALSE>>=
 var1 <- "wt"
 rng <- range(theData[, var1])
 wtFilter <- anItemGroup(name=var1,
@@ -1815,7 +1816,7 @@ wtFilter <- anItemGroup(name=var1,
 
 Our \code{filters} item group will hold the two. Here we specify the
 layout using a frame.
-<<>>=
+<<eval=FALSE>>=
 filters <- anItemGroup(items=list(cylFilter, wtFilter))
 filters$make_default_gui_layout <- function(.) {
   aFrame(var,
@@ -1830,7 +1831,7 @@ the indices of the cases that are still valid. This task is made
 simpler by defining the \code{get\_selected} methods, as these return
 the logical values we wish. 
 
-<<>>=
+<<eval=FALSE>>=
 filters$model_value_changed <- function(.) {
   items <- .$get_items()
   ind <- as.logical(items[[1]]$get_selected() * items[[2]]$get_selected())
@@ -1843,7 +1844,7 @@ filters$model_value_changed <- function(.) {
 With the pieces above, creating the main GUI is now
 straightforward. The items are four in number: the label, the data,
 the graphic device and the filter area.
-<<>>=
+<<eval=FALSE>>=
 dlg <- aDialog(items=list(
                  Description=labelItem(theDesc, attr=c(markup=TRUE)),
                  gd = graphicDeviceItem(),
@@ -1855,14 +1856,14 @@ dlg <- aDialog(items=list(
                )
 @ 
 When the data is changed, we want the graphic to be updated.
-<<specifyDialog>>=
+<<specifyDialog,eval=FALSE>>=
 dlg$property_data_value_changed <- function(., value, old_value) 
   .$draw_graphic()
 @ 
 This method was referred to above in the method calls for
 filtering. The filter updates the data, and then the above method is
 called to update the graphic.
-<<>>=
+<<eval=FALSE>>=
 dlg$update_data <- function(., index) {
   if(missing(index))
     data <- theData
@@ -1875,7 +1876,7 @@ dlg$update_data <- function(., index) {
 Finally, we make the drawing of the graphic a separate method, so we
 can call it without having to update the data set. We don't work very
 hard in the graphical summary of data.
-<<>>=
+<<eval=FALSE>>=
 dlg$draw_graphic <- function(.) {
   data <- dataDisplay$get_data()
   if(nrow(data)) {
@@ -1890,7 +1891,7 @@ dlg$draw_graphic <- function(.) {
 Finally, we use paned groups to layout our GUI, allowing the user to
 give more area to the data table if desired.
 
-<<>>=
+<<eval=FALSE>>=
 ## Layout for main GUI
 lyt <- aNotebook(aNotebookPage("Description",
                                label="About"
@@ -1907,7 +1908,7 @@ lyt <- aNotebook(aNotebookPage("Description",
 
 Since the GUI takes a few seconds to load, we first call the
 \code{loadingAnimation} window to give the user some feedback.
-<<makeGUI>>=
+<<makeGUI,eval=FALSE>>=
 w <- loadingAnimation()
 dlg$make_gui(gui_layout=lyt)
 w$close()
