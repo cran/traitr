@@ -61,7 +61,8 @@ roxygen()
 #'                  item_factory = function(.) {
 #'                    a <- anItemGroup(items=list(
 #'                                       name=stringItem(""),
-#'                                       rank=choiceItem("Scout", values=c("Scout","Captain","General")),
+#'                                       rank=choiceItem("Scout",
+#'                                            values=c("Scout","Captain","General")),
 #'                                       serial.number = stringItem("", label="Serial number")))
 #'                    a$post_process <- function(.) {
 #'                     .$icon <- tolower(.$get_rank())

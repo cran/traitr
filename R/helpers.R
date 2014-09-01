@@ -13,6 +13,13 @@
 ##  A copy of the GNU General Public License is available at
 ##  http://www.r-project.org/Licenses/
 
+
+##' @import gWidgets
+##' @import proto
+##' @import digest
+NULL
+
+
 ## Some helper functions
 ## avoid loading in roxygen by user
 if(!exists("roxygen"))
@@ -23,7 +30,7 @@ if(!exists("roxygen"))
 ##' @param x object
 ##' @param default default value
 ##' @return Returns default if x is NA, null or "", otherwise x
-##' @rdname misc
+##' @rdname get_with_default
 get_with_default = function(x, default) {
   if(is.null(x) || is.na(x) || x == "")
     default
@@ -50,35 +57,36 @@ wrap_in_tag <- function(tag,..., class="") {
     class=paste("class=",class,sep="")
   paste("<",tag," ", class,">",paste(...),"</",tag,">",sep="")
 }
+
 ##' specify a description for documentation
 ##'
 ##' internal function for writing proto docs.
-##' @param ... Values pasted in
 ##' return a string
 ##' @rdname misc
 desc <- function(...) wrap_in_tag("p", "Description:", ..., class="description")
+
 ##' specify a method paramter
 ##'
 ##' internal function for writing proto docs.
 ##' @param value name of parameter
-##' @param ... Values pasted in
 ##' return a string
 ##' @rdname misc
 param <- function(value, ...) {
   value <- paste("<code class='param'>",value,"</code>", paste(..., sep=" ", collapse=" "))
   wrap_in_tag("p",value)
 }
+
 ##' Document return value
 ##'
 ##' internal function for writing proto docs.
-##' @param ... Values pasted in
 ##' return a string
 ##' @rdname misc
 returns <- function(...) wrap_in_tag("p", "Returns:", ..., class="returns")
-##' write <ul> 
+
+##' ##' write <ul> 
 ##'
 ##' internal function for writing proto docs.
-##' @param values values to form items
+##' @param values values to put into list items
 ##' @return returns a string
 ##' @rdname misc
 ul <- function(values) 

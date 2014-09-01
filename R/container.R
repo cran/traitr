@@ -523,7 +523,8 @@ anExpandGroup <- function(..., label="", horizontal=FALSE, expanded=TRUE,
 ##' lay <- aPanedGroup("x","y") ## just two children,
 ##' i$make_gui(gui_layout=lay)
 ##' ## can put other children into a container to make just two children for aPanedGroup instance
-##' j <- aDialog(items=list(x=numericItem(1), y=stringItem("a"), z=trueFalseItem(TRUE, label="check me")))
+##' j <- aDialog(items=list(x=numericItem(1), y=stringItem("a"),
+##'                         z=trueFalseItem(TRUE, label="check me")))
 ##' lay <- aPanedGroup("x", aContainer("y", "z"))
 ##' j$make_gui(gui_layout=lay)
 ##' }
@@ -605,7 +606,7 @@ aNotebook <- function(..., close_buttons=FALSE, initial_page=1,
 ##' @param visible_when Method to determine when items in container should be visible
 ##' @param ... children items specified by character strings
 ##' @return Returns a \code{proto} object. Call \code{obj$show_help()} to view its methods and properties.
-##' @rdname aNotebook
+##' @rdname aNotebookPage
 ##' @export
 
 aNotebookPage <- function(..., label,

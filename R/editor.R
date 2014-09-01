@@ -370,7 +370,7 @@ ObjectWithValuesEditor <- Editor$proto(class=c("ObjectWithValuesEditor", Editor$
 ##' Trait for Editor for TRUE/FALSE selection
 ##'
 ##' Editor has regular or compact style
-##' @rdname Editor
+##' @rdname BooleanEditor
 BooleanEditor <- Editor$proto(class=c("BooleanEditor", Editor$class),
                               editor_name="gcombobox",
                               make_ui=function(., container, attr=.$attr, context, ...) {
